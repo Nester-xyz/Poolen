@@ -1,8 +1,15 @@
+import { useEffect, useState } from "react";
 import { getData } from "../api/getData";
 import Card from "./Card";
+import { TBetCard } from "../types/list";
 
 const BetPost = () => {
-  const data = getData();
+  const [data, setData] = useState<TBetCard[]>([]);
+
+  useEffect(() => {
+    getData().then((data) => setData(data));
+  }, []);
+
   return (
     <div className="px-2 ">
       {/* Triangle */}
