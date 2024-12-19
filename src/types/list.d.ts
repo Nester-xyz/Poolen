@@ -1,9 +1,9 @@
 export type TBetOption = {
   name: string;
+  description: string;
   icon: string;
   growth: number;
   pickedRate: number;
-  pickedCount: number;
 };
 
 export type TBetCard = {
