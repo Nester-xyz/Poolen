@@ -5,6 +5,7 @@ import { TBetCard } from "../types/list";
 
 const BetPostCollection = () => {
   const [data, setData] = useState<TBetCard[]>([]);
+  const [clickedId, setClickedId] = useState(-1);
 
   useEffect(() => {
     getData().then((data) => setData(data));
@@ -15,7 +16,13 @@ const BetPostCollection = () => {
       {/* Triangle */}
       <div className="relative flex flex-col gap-2">
         {data.map((card, i) => {
-          return <Card card={card} key={i} />;
+          return (
+            <button
+              onClick={() => setClickedId((prev) => (prev === i ? -1 : i))}
+            >
+              <Card card={card} key={i} isClicked={clickedId === i} />
+            </button>
+          );
         })}
       </div>
     </div>
