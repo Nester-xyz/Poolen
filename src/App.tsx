@@ -1,6 +1,3 @@
-
-// import BetPost from "./components/betPost";
-// import Title from "./components/Title";
 import Connect from "./components/Connect";
 
 
@@ -10,7 +7,7 @@ function App() {
     <div className="max-w-[30rem] mx-auto border border-black h-screen">
       <div>
 
-          <Connect />
+        <Connect />
 
         {/* <Title />
         <BetPost /> */}
