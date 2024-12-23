@@ -4,89 +4,63 @@ export const getData = async () => {
   const data: TBetCard[] = [
     {
       prizePool: 200,
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi.",
+      description: "Which coin will grow the most in the next 24 hrs?",
       options: [
         {
           growth: 2,
-          icon: "",
+          icon: "https://placehold.co/600x400",
           name: "lum",
           pickedRate: 2,
         },
         {
           growth: 2,
-          icon: "",
+          icon: "https://placehold.co/600x400",
           name: "moxie",
           pickedRate: 2,
         },
         {
           growth: 2,
-          icon: "",
+          icon: "https://placehold.co/600x400",
           name: "higher",
           pickedRate: 2,
         },
         {
           growth: 2,
-          icon: "",
+          icon: "https://placehold.co/600x400",
           name: "tn10x",
-          pickedRate: 2,
-        },
-        {
-          growth: 2,
-          icon: "",
-          name: "degen",
-          pickedRate: 2,
-        },
-        {
-          growth: 2,
-          icon: "",
-          name: "mfer",
           pickedRate: 2,
         },
       ],
     },
     {
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi.",
+      prizePool: 200,
+      description: "Which coin will grow the most in the next 24 hrs?",
       options: [
         {
           growth: 2,
-          icon: "",
+          icon: "https://placehold.co/600x400",
           name: "lum",
           pickedRate: 2,
         },
         {
           growth: 2,
-          icon: "",
+          icon: "https://placehold.co/600x400",
           name: "moxie",
           pickedRate: 2,
         },
         {
           growth: 2,
-          icon: "",
+          icon: "https://placehold.co/600x400",
           name: "higher",
           pickedRate: 2,
         },
         {
           growth: 2,
-          icon: "",
+          icon: "https://placehold.co/600x400",
           name: "tn10x",
           pickedRate: 2,
         },
-        {
-          growth: 2,
-          icon: "",
-          name: "degen",
-          pickedRate: 2,
-        },
-        {
-          growth: 2,
-          icon: "",
-          name: "mfer",
-          pickedRate: 2,
-        },
       ],
-      prizePool: 200,
     },
   ];
 
