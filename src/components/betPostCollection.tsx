@@ -3,7 +3,7 @@ import { getData } from "../api/getData";
 import Card from "./Card";
 import { TBetCard } from "../types/list";
 
-const BetPost = () => {
+const BetPostCollection = () => {
   const [data, setData] = useState<TBetCard[]>([]);
 
   useEffect(() => {
@@ -22,4 +22,4 @@ const BetPost = () => {
   );
 };
 
-export default BetPost;
+export default BetPostCollection;

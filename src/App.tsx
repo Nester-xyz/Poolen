@@ -1,4 +1,4 @@
-import BetPost from "./components/betPost";
+import BetPostCollection from "./components/betPostCollection";
 import Title from "./components/Title";
 
 function App() {
@@ -6,7 +6,7 @@ function App() {
     <div className="max-w-[30rem] mx-auto border border-black h-screen">
       <div>
         <Title />
-        <BetPost />
+        <BetPostCollection />
       </div>
     </div>
   );
