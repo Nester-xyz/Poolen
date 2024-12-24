@@ -3,10 +3,10 @@ export type TBetOption = {
   icon: string;
   growth: number;
   pickedRate: number;
-  pickedCount: number;
 };
 
 export type TBetCard = {
+  description: string;
   prizePool: number;
   options: TBetOption[];
 };
