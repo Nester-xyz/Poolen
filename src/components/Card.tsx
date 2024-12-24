@@ -1,5 +1,9 @@
 import { ConvertToCoin, CutString } from "../lib/helper";
 import { TBetCard } from "../types/list";
+import CoinCollection from "./CoinCollection";
+import PrizePool from "./PrizePool";
+import Question from "./Questiont";
+import ValidUntil from "./ValidUntil";
 
 type CardProps = {
   card: TBetCard;
@@ -7,6 +11,54 @@ type CardProps = {
 };
 
 const Card = ({ card, isClicked }: CardProps) => {
+  if (!card) return null;
+  return (
+    <div
+      className={`w-full border border-black rounded-tl-3xl rounded-br-3xl px-3 py-3 transition-all duration-300 ease-in-out cursor-pointer hover:shadow-lg hover:border-gray-400 `}
+    >
+      <div className="grid grid-cols-8">
+        <div className="col-span-2">
+          <CoinCollection card={card} />
+          <PrizePool />
+        </div>
+        <div className="col-span-4">
+          <ValidUntil />
+          <Question />
+        </div>
+        {/* {card.options.map((coin, index) => {
+              return (
+                <div key={index}>
+                  <CoinIcon />
+                </div>
+              );
+            })} */}
+        {/* <div className="text-left flex-[4]">
+            {CutString(card.description, 100)}
+            <div className="grid grid-cols-4 mt-4">
+              {card.options.map((data, index) => {
+                return (
+                  <div
+                    key={index}
+                    className="flex flex-col items-center gap-1 transform transition-all duration-300 ease-in-out"
+                  >
+                    <img
+                      src={data.icon}
+                      alt="icon"
+                      classname="w-8 h-8 rounded-full object-cover transform transition hover:scale-110"
+                    />
+                    <div className="text-lg">{ConvertToCoin(data.name)}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div> */}
+        {/* <div className="flex-1 transform transition-all duration-300 animate-fadeIn">
+            <div className="text-5xl">{card.prizePool}</div>
+            <div className="text-3xl">$NEST</div>
+          </div> */}
+      </div>
+    </div>
+  );
   return (
     <div
       className={`
@@ -18,11 +70,9 @@ const Card = ({ card, isClicked }: CardProps) => {
     >
       {isClicked ? (
         <div className="grid grid-cols-5 w-full animate-fadeIn">
-          <div className="col-span-4">
-            <div className="transform transition-all duration-300 ease-in-out">
-              {CutString(card.description, 100)}
-            </div>
-            <div className="grid grid-cols-4 mt-4 animate-slideUp">
+          <div className="col-span-4  text-left">
+            {CutString(card.description, 100)}
+            <div className="grid grid-cols-4 mt-4">
               {card.options.map((data, index) => {
                 return (
                   <div
