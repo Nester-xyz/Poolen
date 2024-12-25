@@ -1,6 +1,6 @@
 import { WagmiProvider, createConfig } from "wagmi";
 import { Chain } from "wagmi/chains";
-import { mainnet } from "wagmi/chains";
+// import { mainnet } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConnectKitProvider, getDefaultConfig } from "connectkit";
 import { createStorage } from "wagmi";
@@ -8,9 +8,14 @@ import { createStorage } from "wagmi";
 const lensTestnet: Chain = {
   id: 37111, // Chain ID for Lens Network Sepolia Testnet
   name: "Lens Network Sepolia Testnet",
-  network: "lens-testnet",
+
   rpcUrls: {
-    default: "https://rpc.testnet.lens.dev", // Custom RPC URL
+    default: {
+      http: ["https://rpc.testnet.lens.dev"],
+    },
+    public: {
+      http: ["https://rpc.testnet.lens.dev"],
+    }
   },
   nativeCurrency: {
     name: "GRASS",
@@ -36,7 +41,6 @@ const config = createConfig(
     appName: "Poolen",
   }),
 );
-
 
 const queryClient = new QueryClient();
 
