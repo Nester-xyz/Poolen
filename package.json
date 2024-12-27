@@ -10,17 +10,19 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@lens-network/sdk": "^0.0.0-canary-20241203140504",
     "@lens-protocol/client": "^0.0.0-canary-20241224162155",
-    "@lens-protocol/metadata": "^1.2.0",
+    "@lens-protocol/metadata": "^2.0.0-next.2",
     "@lens-protocol/react-web": "^2.3.2",
-    "@lens-protocol/storage-node-client": "^0.0.0-latest-20241209200445",
+    "@lens-protocol/storage-node-client": "^0.0.0-next-20241217195719",
     "@lens-protocol/wagmi": "^4.1.5",
     "@tanstack/react-query": "^5.62.8",
     "connectkit": "^1.8.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "viem": "^2.21.57",
-    "wagmi": "^2.14.4"
+    "wagmi": "^2.14.4",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",
