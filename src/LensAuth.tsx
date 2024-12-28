@@ -22,6 +22,7 @@ import {
 } from "@lens-protocol/storage-node-client";
 import { createWalletClient } from "viem";
 import { client } from "./client";
+import SignUp from "./components/SignUp";
 
 const LensAuth = () => {
   const { address } = useAccount();
@@ -29,6 +30,7 @@ const LensAuth = () => {
   const [error, setError] = useState<string>("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [availableUsers, setAvailableUsers] = useState([]);
+  const [userName, setUserName] = useState("");
 
   useEffect(() => {
     const fetchAllUser = async () => {
@@ -55,7 +57,7 @@ const LensAuth = () => {
     const storageClient = StorageClient.create(storageEnv);
     const chain = chains.testnet;
     const metadata = account({
-      name: "Ankit Doe",
+      name: userName || "checking user",
     });
 
     const walletClient = createWalletClient({
@@ -78,71 +80,65 @@ const LensAuth = () => {
       return;
     }
 
-    const availableAccounts = await fetchAllUser();
-    console.log(availableAccounts);
-    if (!availableAccounts || availableAccounts.length === 0) {
-      try {
-        const clients = getClients();
+    try {
+      const clients = getClients();
 
-        if (!clients) {
-          setError("Failed to initialize clients");
-          return;
-        }
+      if (!clients) {
+        setError("Failed to initialize clients");
+        return;
+      }
 
-        const { storageClient, walletClient, client, metadata } = clients;
+      const { storageClient, walletClient, client, metadata } = clients;
 
-        const sessionClient = await client
-          .login({
-            onboardingUser: {
-              app: "0xe5439696f4057aF073c0FB2dc6e5e755392922e1",
-              wallet: walletClient.account.address,
-            },
-            signMessage: (message: string) => signMessageAsync({ message }),
-          })
-          .match(
-            (result) => result,
-            (error) => {
-              throw error;
-            },
-          );
-
-        setIsAuthenticated(true);
-        console.log("Successfully authenticated with Lens!", sessionClient);
-
-        const { uri } = await storageClient.uploadFile(
-          new File([JSON.stringify(metadata)], "metadata.json", {
-            type: "application/json",
-          }),
+      const sessionClient = await client
+        .login({
+          onboardingUser: {
+            app: "0xe5439696f4057aF073c0FB2dc6e5e755392922e1",
+            wallet: walletClient.account.address,
+          },
+          signMessage: (message: string) => signMessageAsync({ message }),
+        })
+        .match(
+          (result) => result,
+          (error) => {
+            throw error;
+          },
         );
 
-        const createAccountResult = await createAccountWithUsername(
-          sessionClient,
-          {
-            metadataUri: uri,
-            username: {
-              localName: `ankitbhan${Date.now()}`, // Make username unique
-            },
-          },
-        )
-          .andThen(handleWith(walletClient))
-          .andThen(sessionClient.waitForTransaction)
-          .andThen((txHash) => fetchAccount(sessionClient, { txHash }))
-          .match(
-            (result) => result,
-            (error) => {
-              throw error;
-            },
-          );
+      setIsAuthenticated(true);
+      console.log("Successfully authenticated with Lens!", sessionClient);
 
-        console.log(createAccountResult);
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error
-            ? err.message
-            : "Failed to authenticate with Lens";
-        setError(errorMessage);
-        console.error(err);
-      }
+      const { uri } = await storageClient.uploadFile(
+        new File([JSON.stringify(metadata)], "metadata.json", {
+          type: "application/json",
+        }),
+      );
+
+      const createAccountResult = await createAccountWithUsername(
+        sessionClient,
+        {
+          metadataUri: uri,
+          username: {
+            localName: `${userName}${Date.now()}`, // Make username unique
+          },
+        },
+      )
+        .andThen(handleWith(walletClient))
+        .andThen(sessionClient.waitForTransaction)
+        .andThen((txHash) => fetchAccount(sessionClient, { txHash }))
+        .match(
+          (result) => result,
+          (error) => {
+            throw error;
+          },
+        );
+
+      console.log(createAccountResult);
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to authenticate with Lens";
+      setError(errorMessage);
+      console.error(err);
     }
   };
 
@@ -159,20 +155,11 @@ const LensAuth = () => {
           })}
         </div>
       ) : (
-        "lens login"
-      )}
-      {address && !isAuthenticated && (
-        <button
-          onClick={handleLensLogin}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          Login with Lens
-        </button>
-      )}
-
-      {isAuthenticated && (
-        <div className="p-2 bg-green-100 text-green-800 rounded">
-          Successfully authenticated with Lens!
+        <div className="w-8/12 mx-auto">
+          <div className="text-6xl text-balance font-black techno">
+            You are not signed in
+          </div>
+          <SignUp setUserName={setUserName} handleLensLogin={handleLensLogin} />
         </div>
       )}
 
