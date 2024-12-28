@@ -7,10 +7,6 @@ import { evmAddress } from "@lens-protocol/client";
 import { handleWith } from "@lens-protocol/client/viem";
 // import { fetchAccount } from '@lens-protocol/client/actions';
 import {
-  PublicClient,
-  testnet as protocolTestnet,
-} from "@lens-protocol/client";
-import {
   createAccountWithUsername,
   fetchAccount,
   fetchAccountsAvailable,
@@ -23,14 +19,27 @@ import {
 import { createWalletClient } from "viem";
 import { client } from "./client";
 import SignUp from "./components/SignUp";
+import { CircleArrowRight } from "lucide-react";
+import {ethers} from "ethers";
+import AccountSuccess from "./components/AccountSuccess";
+
+type AccountManaged = {
+  account: {
+    username: {
+      value: string;
+    } | null;
+    address: string;
+  };
+};
 
 const LensAuth = () => {
   const { address } = useAccount();
   const { signMessageAsync } = useSignMessage();
   const [error, setError] = useState<string>("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [availableUsers, setAvailableUsers] = useState([]);
+  const [availableUsers, setAvailableUsers] = useState<AccountManaged[]>([]);
   const [userName, setUserName] = useState("");
+  const [loggedInUsername, setLoggedInUsername] = useState<string>("");
 
   useEffect(() => {
     const fetchAllUser = async () => {
@@ -47,6 +56,52 @@ const LensAuth = () => {
     };
     fetchAllUser().then((res) => setAvailableUsers(res));
   }, [address]);
+
+  //login specific user
+  const specificUserLogin = async (account: AccountManaged['account']) => {
+    if (!account?.username?.value) {
+      setError("No username provided");
+      return;
+    }
+
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      
+      const sessionClient = await client
+        .login({
+          accountOwner: {
+            account: account.address,
+            app: "0xe5439696f4057aF073c0FB2dc6e5e755392922e1",
+            owner: await signer.getAddress(),
+          },
+          signMessage: async (message) => {
+            return await signer.signMessage(message);
+          },
+        })
+        .match(
+          (result) => result,
+          (error) => { throw error; }
+        );
+
+        console.log(sessionClient)
+
+      const fetchAccountResult = await fetchAccount(sessionClient, { 
+        address: account.address 
+      });
+      console.log("Account details:", fetchAccountResult);
+
+      console.log("Successfully logged in as:", account.username.value);
+      setLoggedInUsername(account.username.value);
+      setIsAuthenticated(true);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to login";
+      setError(errorMessage);
+      console.error(err);
+    }
+  };
+
+
 
   // Only create clients if address exists
   const getClients = () => {
@@ -66,15 +121,13 @@ const LensAuth = () => {
       transport: custom(window.ethereum),
     });
 
-    const client = PublicClient.create({
-      environment: protocolTestnet,
-    });
+    
 
-    return { storageClient, chain, metadata, walletClient, client };
+    return { storageClient, chain, metadata, walletClient,  };
   };
 
   // Handle Lens authentication
-  const handleLensLogin = async () => {
+  const handleOnboarding  = async () => {
     if (!address) {
       setError("Please connect your wallet first");
       return;
@@ -88,7 +141,7 @@ const LensAuth = () => {
         return;
       }
 
-      const { storageClient, walletClient, client, metadata } = clients;
+      const { storageClient, walletClient, metadata } = clients;
 
       const sessionClient = await client
         .login({
@@ -104,9 +157,13 @@ const LensAuth = () => {
             throw error;
           },
         );
+        
 
       setIsAuthenticated(true);
+
       console.log("Successfully authenticated with Lens!", sessionClient);
+     
+       
 
       const { uri } = await storageClient.uploadFile(
         new File([JSON.stringify(metadata)], "metadata.json", {
@@ -142,32 +199,40 @@ const LensAuth = () => {
     }
   };
 
-  return (
-    <div className="p-4 space-y-4">
-      {availableUsers.length > 0 ? (
-        <div className="h-96 overflow-scroll flex flex-col gap-2 border p-2 ">
-          {availableUsers.map((val, i) => {
-            return (
-              <div key={i} className="p-2 bg-green-100 text-green-800 rounded">
-                {val.account.username.value}
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="w-8/12 mx-auto">
-          <div className="text-6xl text-balance font-black techno">
-            You are not signed in
-          </div>
-          <SignUp setUserName={setUserName} handleLensLogin={handleLensLogin} />
-        </div>
-      )}
 
-      {error && (
-        <div className="p-2 bg-red-100 text-red-800 rounded">{error}</div>
-      )}
-    </div>
-  );
+    return (
+      <div className="p-4 space-y-4">
+        {isAuthenticated && loggedInUsername ? (
+          <AccountSuccess username={loggedInUsername} />
+        ) : availableUsers.length > 0 ? (
+          <div className="h-96 w-80 overflow-scroll flex flex-col gap-2 border p-2 ">
+               <div className="text-2xl font-bold text-center">LOGIN AS</div>
+            {availableUsers.map((val, i) => {
+              return (
+                <div key={i} className="p-2 bg-green-100 text-green-800 rounded flex justify-between">       
+                  {val.account.username?.value}
+                  <div className="cursor-pointer" onClick={() => specificUserLogin(val.account)}>    
+                    <CircleArrowRight />               
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="w-8/12 mx-auto">
+            <div className="text-6xl text-balance font-black techno">
+              You are not signed in
+            </div>
+            <SignUp setUserName={setUserName} handleOnboarding={handleOnboarding} />
+          </div>
+        )}
+  
+        {error && (
+          <div className="p-2 bg-red-100 text-red-800 rounded">{error}</div>
+        )}
+      </div>
+    );
 };
+
 
 export default LensAuth;

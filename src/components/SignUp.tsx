@@ -2,9 +2,9 @@ import { useState } from "react";
 
 type SignUpProps = {
   setUserName: (name: string) => void;
-  handleLensLogin: () => void;
+  handleOnboarding: () => void;
 };
-const SignUp = ({ setUserName, handleLensLogin }: SignUpProps) => {
+const SignUp = ({ setUserName, handleOnboarding }: SignUpProps) => {
   const [userNameLocal, setUserNameLocal] = useState("");
   const [isFocused, setIsFocused] = useState(false);
 
@@ -56,7 +56,7 @@ const SignUp = ({ setUserName, handleLensLogin }: SignUpProps) => {
         onClick={(e) => {
           e.preventDefault();
           setUserName(userNameLocal);
-          handleLensLogin();
+          handleOnboarding();
         }}
       >
         <span className="relative z-10">Click</span>
