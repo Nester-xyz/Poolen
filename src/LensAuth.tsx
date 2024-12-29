@@ -1,11 +1,8 @@
-import "viem/window";
-
 import { useEffect, useState } from "react";
 import { chains } from "@lens-network/sdk/viem";
 import { custom, useAccount, useSignMessage } from "wagmi";
-import { evmAddress } from "@lens-protocol/client";
+import { AccountManaged, evmAddress } from "@lens-protocol/client";
 import { handleWith } from "@lens-protocol/client/viem";
-// import { fetchAccount } from '@lens-protocol/client/actions';
 import {
   createAccountWithUsername,
   fetchAccount,
@@ -17,117 +14,92 @@ import {
   testnet as storageEnv,
 } from "@lens-protocol/storage-node-client";
 import { createWalletClient } from "viem";
+import { ethers } from "ethers";
+import { CircleArrowRight } from "lucide-react";
 import { client } from "./client";
 import SignUp from "./components/SignUp";
-import { CircleArrowRight } from "lucide-react";
-import {ethers} from "ethers";
 import AccountSuccess from "./components/AccountSuccess";
-
-type AccountManaged = {
-  account: {
-    username: {
-      value: string;
-    } | null;
-    address: string;
-  };
-};
+import LoadingSpinner from "./components/LoadingSpinner";
+import { Account } from "./types/account";
+import { APP_ADDRESS } from "./lib/constants";
 
 const LensAuth = () => {
+  // Hooks
   const { address } = useAccount();
   const { signMessageAsync } = useSignMessage();
-  const [error, setError] = useState<string>("");
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [availableUsers, setAvailableUsers] = useState<AccountManaged[]>([]);
   const [userName, setUserName] = useState("");
-  const [loggedInUsername, setLoggedInUsername] = useState<string>("");
 
-  useEffect(() => {
-    const fetchAllUser = async () => {
-      console.log("fetchCalled");
-      try {
-        const response = await fetchAccountsAvailable(client, {
-          managedBy: evmAddress(address!),
-        });
-        console.log(response.value.items);
-        return response.value.items; // Return directly here
-      } catch (err) {
-        return err; // This return is fine
-      }
+  const [state, setState] = useState({
+    error: "",
+    isAuthenticated: false,
+    availableUsers: [] as AccountManaged[],
+    loggedInUsername: "",
+    isLoading: false,
+  });
+
+  // Utility Functions
+  const setError = (error: string) => setState((prev) => ({ ...prev, error }));
+  const setIsAuthenticated = (isAuthenticated: boolean) =>
+    setState((prev) => ({ ...prev, isAuthenticated }));
+  const setLoggedInUsername = (loggedInUsername: string) =>
+    setState((prev) => ({ ...prev, loggedInUsername }));
+  const setAvailableUsers = (availableUsers: AccountManaged[]) =>
+    setState((prev) => ({ ...prev, availableUsers }));
+  const setIsLoading = (isLoading: boolean) =>
+    setState((prev) => ({ ...prev, isLoading }));
+
+  const getClients = () => {
+    if (!address) return null;
+
+    return {
+      storageClient: StorageClient.create(storageEnv),
+      chain: chains.testnet,
+      metadata: account({ name: userName }),
+      walletClient: createWalletClient({
+        account: evmAddress(address),
+        chain: chains.testnet,
+        transport: custom(window.ethereum),
+      }),
     };
-    fetchAllUser().then((res) => setAvailableUsers(res));
-  }, [address]);
+  };
 
-  //login specific user
-  const specificUserLogin = async (account: AccountManaged['account']) => {
+  const loginWithAccount = async (account: Account) => {
     if (!account?.username?.value) {
       setError("No username provided");
       return;
     }
 
+    setIsLoading(true);
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
-      
-      const sessionClient = await client
+
+      await client
         .login({
           accountOwner: {
             account: account.address,
-            app: "0xe5439696f4057aF073c0FB2dc6e5e755392922e1",
+            app: APP_ADDRESS,
             owner: await signer.getAddress(),
           },
-          signMessage: async (message) => {
-            return await signer.signMessage(message);
-          },
+          signMessage: (message) => signer.signMessage(message),
         })
         .match(
           (result) => result,
-          (error) => { throw error; }
+          (error) => {
+            throw error;
+          },
         );
 
-        console.log(sessionClient)
-
-      const fetchAccountResult = await fetchAccount(sessionClient, { 
-        address: account.address 
-      });
-      console.log("Account details:", fetchAccountResult);
-
-      console.log("Successfully logged in as:", account.username.value);
       setLoggedInUsername(account.username.value);
       setIsAuthenticated(true);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to login";
-      setError(errorMessage);
-      console.error(err);
+      setError(err instanceof Error ? err.message : "Failed to login");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-
-
-  // Only create clients if address exists
-  const getClients = () => {
-    if (!address) {
-      return null;
-    }
-
-    const storageClient = StorageClient.create(storageEnv);
-    const chain = chains.testnet;
-    const metadata = account({
-      name: userName || "checking user",
-    });
-
-    const walletClient = createWalletClient({
-      account: evmAddress(address),
-      chain,
-      transport: custom(window.ethereum),
-    });
-
-    
-
-    return { storageClient, chain, metadata, walletClient,  };
-  };
-
-  // Handle Lens authentication
-  const handleOnboarding  = async () => {
+  const handleOnboarding = async () => {
     if (!address) {
       setError("Please connect your wallet first");
       return;
@@ -157,13 +129,10 @@ const LensAuth = () => {
             throw error;
           },
         );
-        
 
       setIsAuthenticated(true);
 
       console.log("Successfully authenticated with Lens!", sessionClient);
-     
-       
 
       const { uri } = await storageClient.uploadFile(
         new File([JSON.stringify(metadata)], "metadata.json", {
@@ -199,40 +168,85 @@ const LensAuth = () => {
     }
   };
 
+  // Effects
+  useEffect(() => {
+    const fetchAllUser = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetchAccountsAvailable(client, {
+          managedBy: evmAddress(address!),
+        });
+        return response.value.items; // Return directly here
+      } catch (err) {
+        return err; // This return is fine
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchAllUser().then((res) => setAvailableUsers(res));
+  }, [address]);
 
-    return (
-      <div className="p-4 space-y-4">
-        {isAuthenticated && loggedInUsername ? (
-          <AccountSuccess username={loggedInUsername} />
-        ) : availableUsers.length > 0 ? (
-          <div className="h-96 w-80 overflow-scroll flex flex-col gap-2 border p-2 ">
-               <div className="text-2xl font-bold text-center">LOGIN AS</div>
-            {availableUsers.map((val, i) => {
-              return (
-                <div key={i} className="p-2 bg-green-100 text-green-800 rounded flex justify-between">       
-                  {val.account.username?.value}
-                  <div className="cursor-pointer" onClick={() => specificUserLogin(val.account)}>    
-                    <CircleArrowRight />               
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="w-8/12 mx-auto">
-            <div className="text-6xl text-balance font-black techno">
-              You are not signed in
+  // Render Functions
+  const renderContent = () => {
+    if (state.isLoading) {
+      return (
+        <div className="h-96 w-full flex items-center justify-center">
+          <LoadingSpinner />
+        </div>
+      );
+    }
+
+    if (state.isAuthenticated && state.loggedInUsername) {
+      return <AccountSuccess username={state.loggedInUsername} />;
+    }
+
+    if (state.availableUsers.length > 0) {
+      return (
+        <div className="h-96 w-80 overflow-scroll flex flex-col gap-2 border p-2">
+          <div className="text-2xl font-bold text-center">LOGIN AS</div>
+          {state.availableUsers.map((val, i) => (
+            <div
+              key={i}
+              className="p-2 bg-green-100 text-green-800 rounded flex justify-between"
+            >
+              {val.account.username?.value}
+              <div
+                className="cursor-pointer"
+                onClick={() => loginWithAccount(val.account)}
+              >
+                <CircleArrowRight />
+              </div>
             </div>
-            <SignUp setUserName={setUserName} handleOnboarding={handleOnboarding} />
-          </div>
-        )}
-  
-        {error && (
-          <div className="p-2 bg-red-100 text-red-800 rounded">{error}</div>
-        )}
-      </div>
-    );
-};
+          ))}
+        </div>
+      );
+    }
 
+    if (state.isAuthenticated)
+      return (
+        <div className="w-8/12 mx-auto">
+          <div className="text-6xl text-balance font-black techno">
+            You are not signed in
+          </div>
+          <SignUp
+            setUserName={setUserName}
+            handleOnboarding={handleOnboarding}
+          />
+          {state?.availableUsers[0]?.account.username?.value}
+        </div>
+      );
+
+    return null;
+  };
+
+  return (
+    <div className="p-4 space-y-4">
+      {renderContent()}
+      {state.error ? (
+        <div className="p-2 bg-red-100 text-red-800 rounded">{state.error}</div>
+      ) : null}
+    </div>
+  );
+};
 
 export default LensAuth;
