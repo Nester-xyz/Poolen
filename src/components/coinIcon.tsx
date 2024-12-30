@@ -1,13 +1,51 @@
-const CoinIcon = () => {
+import { useState } from "react";
+import { TBetOption } from "../types/list";
+import * as motion from "motion/react-client";
+
+interface CoinIconProps {
+  coin: TBetOption;
+  isClicked: boolean;
+  onClick?: () => void;
+}
+
+const CoinIcon = ({ coin, isClicked, onClick }: CoinIconProps) => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
   return (
-    <div className="px-2 py-2 border border-dotted border-gray-700 rounded-lg group relative">
-      <img
-        src="https://placehold.co/600x400"
-        alt="icon"
-        className="w-8 h-8 rounded-full object-cover transform transition hover:scale-110"
-      />
-      <div className="text-xs absolute hidden group-hover:block">LUM</div>
-    </div>
+    <motion.button
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      onClick={onClick}
+      className={` relative h-10   rounded-lg border border-dotted border-gray-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed ${isClicked ? "w-full" : "mx-auto w-10"} `}
+      aria-label={`Select ${coin.name} coin`}
+    >
+      <div className="flex justify-between gap-2 mx-2 items-center">
+        <img
+          src={coin.icon}
+          alt={`${coin.name} icon`}
+          className={` w-8 h-8 rounded-full object-cover ${!imageLoaded || imageError ? "hidden" : "block"} `}
+          onLoad={() => setImageLoaded(true)}
+          onError={() => setImageError(true)}
+          loading="lazy"
+        />
+        <div className={`${isClicked ? "block" : "hidden"}`}>
+          {coin.name}
+          {coin.name && (
+            <span className="ml-1 text-gray-500">({coin.name})</span>
+          )}
+        </div>
+        <button
+          className={`px-2 py-1 bg-blue-500 rounded ${isClicked ? "block" : "hidden"}`}
+          onClick={(e) => {
+            console.log(e);
+            e.stopPropagation();
+          }}
+        >
+          pick
+        </button>
+      </div>
+    </motion.button>
   );
 };
 
