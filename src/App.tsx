@@ -1,5 +1,4 @@
-import Connect from "./components/Connect";
-
+import Connect from "./pages/Connect";
 
 function App() {
   return (
