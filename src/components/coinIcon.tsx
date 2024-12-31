@@ -13,14 +13,14 @@ const CoinIcon = ({ coin, isClicked, onClick }: CoinIconProps) => {
   const [imageError, setImageError] = useState(false);
 
   return (
-    <motion.button
+    <motion.div
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       onClick={onClick}
-      className={` relative h-10   rounded-lg border border-dotted border-gray-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed ${isClicked ? "w-full" : "mx-auto w-10"} `}
+      className={` relative h-10 rounded-lg border border-dotted border-gray-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed ${isClicked ? "w-full" : "mx-auto w-12"} `}
       aria-label={`Select ${coin.name} coin`}
     >
-      <div className="flex justify-between gap-2 mx-2 items-center">
+      <div className="flex justify-between gap-2 mx-2 my-0.5 items-center">
         <img
           src={coin.icon}
           alt={`${coin.name} icon`}
@@ -36,7 +36,7 @@ const CoinIcon = ({ coin, isClicked, onClick }: CoinIconProps) => {
           )}
         </div>
         <button
-          className={`px-2 py-1 bg-blue-500 rounded ${isClicked ? "block" : "hidden"}`}
+          className={`px-2 py-1 bg-orange-500 rounded ${isClicked ? "block" : "hidden"}`}
           onClick={(e) => {
             console.log(e);
             e.stopPropagation();
@@ -45,7 +45,7 @@ const CoinIcon = ({ coin, isClicked, onClick }: CoinIconProps) => {
           pick
         </button>
       </div>
-    </motion.button>
+    </motion.div>
   );
 };
 
