@@ -1,12 +1,34 @@
 import { useState } from "react";
+import LoadingSpinner from "./LoadingSpinner";
 
 type SignUpProps = {
   setUserName: (name: string) => void;
   handleOnboarding: () => void;
 };
+
 const SignUp = ({ setUserName, handleOnboarding }: SignUpProps) => {
   const [userNameLocal, setUserNameLocal] = useState("");
   const [isFocused, setIsFocused] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      setUserName(userNameLocal);
+      handleOnboarding();
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (isSubmitting) {
+    return (
+      <div className="h-96 w-full flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
+  }
 
   return (
     <form className="flex gap-4 p-4">
@@ -53,11 +75,7 @@ const SignUp = ({ setUserName, handleOnboarding }: SignUpProps) => {
                  hover:bg-blue-600 hover:shadow-lg active:scale-95
                  relative overflow-hidden group"
         type="submit"
-        onClick={(e) => {
-          e.preventDefault();
-          setUserName(userNameLocal);
-          handleOnboarding();
-        }}
+        onClick={handleClick}
       >
         <span className="relative z-10">Click</span>
         {/* Button hover effect */}

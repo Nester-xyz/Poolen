@@ -3,6 +3,7 @@ import { chains } from "@lens-network/sdk/viem";
 import { custom, useAccount, useSignMessage } from "wagmi";
 import { AccountManaged, evmAddress } from "@lens-protocol/client";
 import { handleWith } from "@lens-protocol/client/viem";
+import { revokeAuthentication } from "@lens-protocol/client/actions";
 import {
   createAccountWithUsername,
   fetchAccount,
@@ -15,7 +16,7 @@ import {
 } from "@lens-protocol/storage-node-client";
 import { createWalletClient } from "viem";
 import { ethers } from "ethers";
-import { CircleArrowRight } from "lucide-react";
+import { CircleArrowRight, LogOut } from "lucide-react";
 import { client } from "./client";
 import SignUp from "./components/SignUp";
 import AccountSuccess from "./components/AccountSuccess";
@@ -35,6 +36,7 @@ const LensAuth = () => {
     availableUsers: [] as AccountManaged[],
     loggedInUsername: "",
     isLoading: false,
+    authenticatedValue: ""
   });
 
   // Utility Functions
@@ -47,6 +49,8 @@ const LensAuth = () => {
     setState((prev) => ({ ...prev, availableUsers }));
   const setIsLoading = (isLoading: boolean) =>
     setState((prev) => ({ ...prev, isLoading }));
+  const setAuthenticatedValue = (authenticatedValue: string) =>
+    setState((prev) => ({ ...prev, authenticatedValue }));
 
   const getClients = () => {
     if (!address) return null;
@@ -74,7 +78,7 @@ const LensAuth = () => {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
 
-      await client
+     const credentials =  await client
         .login({
           accountOwner: {
             account: account.address,
@@ -89,7 +93,15 @@ const LensAuth = () => {
             throw error;
           },
         );
-
+        const authenticatedUser = await credentials.getAuthenticatedUser().match( 
+          (result) => result,
+          (error) => {
+            throw error;
+          }
+        );
+console.log(authenticatedUser);
+setAuthenticatedValue(authenticatedUser.authentication_id);
+console.log(authenticatedUser.authentication_id);
       setLoggedInUsername(account.username.value);
       setIsAuthenticated(true);
     } catch (err) {
@@ -128,8 +140,7 @@ const LensAuth = () => {
           (error) => {
             throw error;
           },
-        );
-
+        )
       setIsAuthenticated(true);
 
       console.log("Successfully authenticated with Lens!", sessionClient);
@@ -152,6 +163,10 @@ const LensAuth = () => {
         .andThen(handleWith(walletClient))
         .andThen(sessionClient.waitForTransaction)
         .andThen((txHash) => fetchAccount(sessionClient, { txHash }))
+        .andThen((account) => 
+        sessionClient.switchAccount({
+          account: account?.address
+        }))
         .match(
           (result) => result,
           (error) => {
@@ -159,7 +174,29 @@ const LensAuth = () => {
           },
         );
 
-      console.log(createAccountResult);
+console.log(createAccountResult.getAuthenticatedUser())
+const authenticatedUser = await createAccountResult.getAuthenticatedUser().match(
+  (result) => result,
+  (error) => {
+    throw error;
+  }
+);
+const newAccount = await fetchAccount(sessionClient, {
+  address: (authenticatedUser as any).account
+});
+console.log(newAccount)
+setAuthenticatedValue(newAccount.username?.value);
+const accountData = newAccount.match(
+  (result) => result,
+  (error) => {
+    throw error;
+  }
+);
+if (accountData) {
+  setLoggedInUsername(accountData.username?.value);
+  setIsAuthenticated(true);
+}
+//       console.log(createAccountResult);
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to authenticate with Lens";
@@ -167,6 +204,13 @@ const LensAuth = () => {
       console.error(err);
     }
   };
+
+  const handleLogout = async () => {
+    // TODO: Implement logout logic
+    setIsAuthenticated(false);
+    setLoggedInUsername("");
+    setAuthenticatedValue("");
+  }
 
   // Effects
   useEffect(() => {
@@ -176,9 +220,9 @@ const LensAuth = () => {
         const response = await fetchAccountsAvailable(client, {
           managedBy: evmAddress(address!),
         });
-        return response.value.items; // Return directly here
+        return response.value.items; 
       } catch (err) {
-        return err; // This return is fine
+        return err; 
       } finally {
         setIsLoading(false);
       }
@@ -197,7 +241,16 @@ const LensAuth = () => {
     }
 
     if (state.isAuthenticated && state.loggedInUsername) {
-      return <AccountSuccess username={state.loggedInUsername} />;
+      return (
+        <div className="flex flex-col gap-4 items-center justify-center">
+          <div>
+            <AccountSuccess username={state.loggedInUsername} />
+          </div>
+          <button onClick={handleLogout} className="flex items-center justify-center gap-2 bg-red-500 text-white p-2 rounded-md">
+            <div className="text-lg">Logout</div> <LogOut className="w-4 h-4" />
+          </button>
+        </div>
+      );
     }
 
     if (state.availableUsers.length > 0) {
@@ -222,7 +275,7 @@ const LensAuth = () => {
       );
     }
 
-    if (state.isAuthenticated)
+    // if (!state.isAuthenticated)
       return (
         <div className="w-8/12 mx-auto">
           <div className="text-6xl text-balance font-black techno">
