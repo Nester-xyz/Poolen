@@ -3,7 +3,7 @@ import LoadingSpinner from "./LoadingSpinner";
 
 type SignUpProps = {
   setUserName: (name: string) => void;
-  handleOnboarding: () => void;
+  handleOnboarding: () => Promise<void>;
 };
 
 const SignUp = ({ setUserName, handleOnboarding }: SignUpProps) => {
@@ -16,7 +16,7 @@ const SignUp = ({ setUserName, handleOnboarding }: SignUpProps) => {
     setIsSubmitting(true);
     try {
       setUserName(userNameLocal);
-      handleOnboarding();
+      await handleOnboarding();
     } finally {
       setIsSubmitting(false);
     }
