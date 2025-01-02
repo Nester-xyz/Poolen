@@ -3,7 +3,7 @@ import { chains } from "@lens-network/sdk/viem";
 import { custom, useAccount, useSignMessage } from "wagmi";
 import { AccountManaged, evmAddress } from "@lens-protocol/client";
 import { handleWith } from "@lens-protocol/client/viem";
-import {   revokeAuthentication } from "@lens-protocol/client/actions";
+import { revokeAuthentication } from "@lens-protocol/client/actions";
 import {
   createAccountWithUsername,
   fetchAccount,
@@ -40,7 +40,7 @@ const LensAuth = () => {
     loggedInUsername: "",
     isLoading: false,
     authenticatedValue: "",
-    sessionClient: null as any
+    sessionClient: null as any,
   });
 
   // Utility Functions
@@ -84,7 +84,7 @@ const LensAuth = () => {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
 
-     const credentials =  await client
+      const credentials = await client
         .login({
           accountOwner: {
             account: account.address,
@@ -99,20 +99,19 @@ const LensAuth = () => {
             throw error;
           },
         );
-        const authenticatedUser = await credentials.getAuthenticatedUser().match( 
-          (result) => result,
-          (error) => {
-            throw error;
-          }
-        );
-setSessionClient(credentials);
+      const authenticatedUser = await credentials.getAuthenticatedUser().match(
+        (result) => result,
+        (error) => {
+          throw error;
+        },
+      );
+      setSessionClient(credentials);
 
-console.log(authenticatedUser);
-setAuthenticatedValue(authenticatedUser.authentication_id);
-console.log(authenticatedUser.authentication_id);
+      console.log(authenticatedUser);
+      setAuthenticatedValue(authenticatedUser.authentication_id);
+      console.log(authenticatedUser.authentication_id);
       setLoggedInUsername(account.username.value);
       setIsAuthenticated(true);
-      
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to login");
     } finally {
@@ -149,7 +148,7 @@ console.log(authenticatedUser.authentication_id);
           (error) => {
             throw error;
           },
-        )
+        );
       setIsAuthenticated(true);
 
       console.log("Successfully authenticated with Lens!", sessionClient);
@@ -172,41 +171,44 @@ console.log(authenticatedUser.authentication_id);
         .andThen(handleWith(walletClient))
         .andThen(sessionClient.waitForTransaction)
         .andThen((txHash) => fetchAccount(sessionClient, { txHash }))
-        .andThen((account) => 
-        sessionClient.switchAccount({
-          account: account?.address
-        }))
+        .andThen((account) =>
+          sessionClient.switchAccount({
+            account: account?.address,
+          }),
+        )
         .match(
           (result) => result,
           (error) => {
             throw error;
           },
         );
-setSessionClient( sessionClient);
+      setSessionClient(sessionClient);
 
-console.log(createAccountResult.getAuthenticatedUser())
-const authenticatedUser = await createAccountResult.getAuthenticatedUser().match(
-  (result) => result,
-  (error) => {
-    throw error;
-  }
-);
-const newAccount = await fetchAccount(sessionClient, {
-  address: (authenticatedUser as any).account
-});
-console.log(newAccount)
-setAuthenticatedValue(newAccount.username?.value);
-const accountData = newAccount.match(
-  (result) => result,
-  (error) => {
-    throw error;
-  }
-);
-if (accountData) {
-  setLoggedInUsername(accountData.username?.value);
-  setIsAuthenticated(true);
-}
-//       console.log(createAccountResult);
+      console.log(createAccountResult.getAuthenticatedUser());
+      const authenticatedUser = await createAccountResult
+        .getAuthenticatedUser()
+        .match(
+          (result) => result,
+          (error) => {
+            throw error;
+          },
+        );
+      const newAccount = await fetchAccount(sessionClient, {
+        address: (authenticatedUser as any).account,
+      });
+      console.log(newAccount);
+      setAuthenticatedValue(newAccount.username?.value);
+      const accountData = newAccount.match(
+        (result) => result,
+        (error) => {
+          throw error;
+        },
+      );
+      if (accountData) {
+        setLoggedInUsername(accountData.username?.value);
+        setIsAuthenticated(true);
+      }
+      //       console.log(createAccountResult);
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to authenticate with Lens";
@@ -219,16 +221,16 @@ if (accountData) {
     try {
       if (state.sessionClient) {
         const logoutRes = await revokeAuthentication(state.sessionClient, {
-          authenticationId: state.authenticatedValue
+          authenticationId: state.authenticatedValue,
         });
         console.log(logoutRes);
       }
-      
+
       setSessionClient(null);
       setIsAuthenticated(false);
       setLoggedInUsername("");
       setAuthenticatedValue("");
-      
+
       // Fetch available accounts again after logout
       const response = await fetchAccountsAvailable(client, {
         managedBy: evmAddress(address!),
@@ -239,24 +241,26 @@ if (accountData) {
     }
   };
 
-const handlePost = async () => {
-  try {
-    if (!state.sessionClient) {
-      throw new Error("Not authenticated");
+  const handlePost = async () => {
+    try {
+      if (!state.sessionClient) {
+        throw new Error("Not authenticated");
+      }
+
+      const metadata = textOnly({
+        content: postContent,
+      });
+
+      const { uri } = await storageClient.uploadAsJson(metadata);
+      console.log(uri);
+      // todo: post request the content to the lens
+    } catch (error) {
+      console.error("Error creating post:", error);
+      setError(
+        error instanceof Error ? error.message : "Failed to create post",
+      );
     }
-
-    const metadata = textOnly({
-      content: postContent,
-    });
-
-    const { uri } = await storageClient.uploadAsJson(metadata);
-    console.log(uri);
-    // todo: post request the content to the lens
-  } catch (error) {
-    console.error("Error creating post:", error);
-    setError(error instanceof Error ? error.message : "Failed to create post");
-  }
-}
+  };
 
   // Effects
   useEffect(() => {
@@ -266,15 +270,21 @@ const handlePost = async () => {
         const response = await fetchAccountsAvailable(client, {
           managedBy: evmAddress(address!),
         });
-        return response.value.items; 
+        return response.value.items;
       } catch (err) {
-        return err; 
+        return err;
       } finally {
         setIsLoading(false);
       }
     };
     fetchAllUser().then((res) => setAvailableUsers(res));
   }, [address]);
+
+  useEffect(() => {
+    if (state.loggedInUsername) {
+      window.location.href = "/bet";
+    }
+  }, [state]);
 
   // Render Functions
   const renderContent = () => {
@@ -292,14 +302,14 @@ const handlePost = async () => {
           <div>
             <AccountSuccess username={state.loggedInUsername} />
           </div>
-          
+
           <div className="w-full max-w-md">
-            <textarea 
+            <textarea
               className="w-full p-3 border rounded-md min-h-[120px] resize-none"
               placeholder="What's on your mind?"
               onChange={(e) => setPostContent(e.target.value)}
             />
-            <button 
+            <button
               onClick={handlePost}
               className="mt-2 w-full bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 transition-colors"
             >
@@ -307,7 +317,10 @@ const handlePost = async () => {
             </button>
           </div>
 
-          <button onClick={handleLogout} className="flex items-center justify-center gap-2 bg-red-500 text-white p-2 rounded-md">
+          <button
+            onClick={handleLogout}
+            className="flex items-center justify-center gap-2 bg-red-500 text-white p-2 rounded-md"
+          >
             <div className="text-lg">Logout</div> <LogOut className="w-4 h-4" />
           </button>
         </div>
@@ -337,30 +350,18 @@ const handlePost = async () => {
     }
 
     // if (!state.isAuthenticated)
-      return (
-        <div className="w-full mx-auto">
-          <div className="text-3xl font-black techno">
-            You are not signed in
-          </div>
-          <SignUp
-            setUserName={setUserName}
-            handleOnboarding={handleOnboarding}
-          />
-          {state?.availableUsers[0]?.account.username?.value}
-        </div>
-      );
+    return (
+      <div className="w-full mx-auto">
+        <div className="text-3xl font-black techno">You are not signed in</div>
+        <SignUp setUserName={setUserName} handleOnboarding={handleOnboarding} />
+        {state?.availableUsers[0]?.account.username?.value}
+      </div>
+    );
 
     return null;
   };
 
-  return (
-    <div className="p-4 space-y-4">
-      {renderContent()}
-      {state.error ? (
-        <div className="p-2 bg-red-100 text-red-800 rounded">{state.error}</div>
-      ) : null}
-    </div>
-  );
+  return <div className="p-4 space-y-4">{renderContent()}</div>;
 };
 
 export default LensAuth;

@@ -1,5 +1,5 @@
 import Bets from "./pages/bets";
-// import Connect from "./pages/Connect";
+import Connect from "./pages/Connect";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 function App() {
@@ -9,7 +9,7 @@ function App() {
         {/* <Connect /> */}
         <BrowserRouter>
           <Routes>
-            {/* <Route path="/" element={<Connect />} /> */}
+            <Route path="/" element={<Connect />} />
             <Route path="/bet" element={<Bets />} />
           </Routes>
         </BrowserRouter>
