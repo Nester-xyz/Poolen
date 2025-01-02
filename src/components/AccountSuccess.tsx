@@ -1,4 +1,4 @@
-import { CircleCheck } from 'lucide-react';
+import { CircleCheck, LogOut } from 'lucide-react';
 
 interface AccountSuccessProps {
   username: string;
@@ -15,7 +15,9 @@ const AccountSuccess = ({ username }: AccountSuccessProps) => {
           <div className="text-xl font-medium text-black">Successfully logged in!</div>
           <p className="text-gray-500">as <span className="font-semibold text-green-600">{username}</span></p>
         </div>
+        
       </div>
+      
     </div>
   );
 };
