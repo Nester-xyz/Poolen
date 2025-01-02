@@ -3,7 +3,7 @@ import { chains } from "@lens-network/sdk/viem";
 import { custom, useAccount, useSignMessage } from "wagmi";
 import { AccountManaged, evmAddress } from "@lens-protocol/client";
 import { handleWith } from "@lens-protocol/client/viem";
-import { revokeAuthentication } from "@lens-protocol/client/actions";
+import {   revokeAuthentication } from "@lens-protocol/client/actions";
 import {
   createAccountWithUsername,
   fetchAccount,
@@ -23,12 +23,15 @@ import AccountSuccess from "./components/AccountSuccess";
 import LoadingSpinner from "./components/LoadingSpinner";
 import { Account } from "./types/account";
 import { APP_ADDRESS } from "./lib/constants";
+import { textOnly } from "@lens-protocol/metadata";
+import { storageClient } from "./storageClient";
 
 const LensAuth = () => {
   // Hooks
   const { address } = useAccount();
   const { signMessageAsync } = useSignMessage();
   const [userName, setUserName] = useState("");
+  const [postContent, setPostContent] = useState("");
 
   const [state, setState] = useState({
     error: "",
@@ -36,7 +39,8 @@ const LensAuth = () => {
     availableUsers: [] as AccountManaged[],
     loggedInUsername: "",
     isLoading: false,
-    authenticatedValue: ""
+    authenticatedValue: "",
+    sessionClient: null as any
   });
 
   // Utility Functions
@@ -51,6 +55,8 @@ const LensAuth = () => {
     setState((prev) => ({ ...prev, isLoading }));
   const setAuthenticatedValue = (authenticatedValue: string) =>
     setState((prev) => ({ ...prev, authenticatedValue }));
+  const setSessionClient = (sessionClient: any) =>
+    setState((prev) => ({ ...prev, sessionClient }));
 
   const getClients = () => {
     if (!address) return null;
@@ -99,11 +105,14 @@ const LensAuth = () => {
             throw error;
           }
         );
+setSessionClient(credentials);
+
 console.log(authenticatedUser);
 setAuthenticatedValue(authenticatedUser.authentication_id);
 console.log(authenticatedUser.authentication_id);
       setLoggedInUsername(account.username.value);
       setIsAuthenticated(true);
+      
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to login");
     } finally {
@@ -173,6 +182,7 @@ console.log(authenticatedUser.authentication_id);
             throw error;
           },
         );
+setSessionClient( sessionClient);
 
 console.log(createAccountResult.getAuthenticatedUser())
 const authenticatedUser = await createAccountResult.getAuthenticatedUser().match(
@@ -206,11 +216,47 @@ if (accountData) {
   };
 
   const handleLogout = async () => {
-    // TODO: Implement logout logic
-    setIsAuthenticated(false);
-    setLoggedInUsername("");
-    setAuthenticatedValue("");
+    try {
+      if (state.sessionClient) {
+        const logoutRes = await revokeAuthentication(state.sessionClient, {
+          authenticationId: state.authenticatedValue
+        });
+        console.log(logoutRes);
+      }
+      
+      setSessionClient(null);
+      setIsAuthenticated(false);
+      setLoggedInUsername("");
+      setAuthenticatedValue("");
+      
+      // Fetch available accounts again after logout
+      const response = await fetchAccountsAvailable(client, {
+        managedBy: evmAddress(address!),
+      });
+      setAvailableUsers(response.value.items);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to logout");
+    }
+  };
+
+const handlePost = async () => {
+  try {
+    if (!state.sessionClient) {
+      throw new Error("Not authenticated");
+    }
+
+    const metadata = textOnly({
+      content: postContent,
+    });
+
+    const { uri } = await storageClient.uploadAsJson(metadata);
+    console.log(uri);
+    // todo: post request the content to the lens
+  } catch (error) {
+    console.error("Error creating post:", error);
+    setError(error instanceof Error ? error.message : "Failed to create post");
   }
+}
 
   // Effects
   useEffect(() => {
@@ -246,6 +292,21 @@ if (accountData) {
           <div>
             <AccountSuccess username={state.loggedInUsername} />
           </div>
+          
+          <div className="w-full max-w-md">
+            <textarea 
+              className="w-full p-3 border rounded-md min-h-[120px] resize-none"
+              placeholder="What's on your mind?"
+              onChange={(e) => setPostContent(e.target.value)}
+            />
+            <button 
+              onClick={handlePost}
+              className="mt-2 w-full bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 transition-colors"
+            >
+              Post
+            </button>
+          </div>
+
           <button onClick={handleLogout} className="flex items-center justify-center gap-2 bg-red-500 text-white p-2 rounded-md">
             <div className="text-lg">Logout</div> <LogOut className="w-4 h-4" />
           </button>
@@ -277,8 +338,8 @@ if (accountData) {
 
     // if (!state.isAuthenticated)
       return (
-        <div className="w-8/12 mx-auto">
-          <div className="text-6xl text-balance font-black techno">
+        <div className="w-full mx-auto">
+          <div className="text-3xl font-black techno">
             You are not signed in
           </div>
           <SignUp
