@@ -31,7 +31,6 @@ const LensAuth = () => {
   const { address } = useAccount();
   const { signMessageAsync } = useSignMessage();
   const [userName, setUserName] = useState("");
-  const [postContent, setPostContent] = useState("");
 
   const [state, setState] = useState({
     error: "",
@@ -241,27 +240,6 @@ const LensAuth = () => {
     }
   };
 
-  const handlePost = async () => {
-    try {
-      if (!state.sessionClient) {
-        throw new Error("Not authenticated");
-      }
-
-      const metadata = textOnly({
-        content: postContent,
-      });
-
-      const { uri } = await storageClient.uploadAsJson(metadata);
-      console.log(uri);
-      // todo: post request the content to the lens
-    } catch (error) {
-      console.error("Error creating post:", error);
-      setError(
-        error instanceof Error ? error.message : "Failed to create post",
-      );
-    }
-  };
-
   // Effects
   useEffect(() => {
     const fetchAllUser = async () => {
@@ -301,20 +279,6 @@ const LensAuth = () => {
         <div className="flex flex-col gap-4 items-center justify-center">
           <div>
             <AccountSuccess username={state.loggedInUsername} />
-          </div>
-
-          <div className="w-full max-w-md">
-            <textarea
-              className="w-full p-3 border rounded-md min-h-[120px] resize-none"
-              placeholder="What's on your mind?"
-              onChange={(e) => setPostContent(e.target.value)}
-            />
-            <button
-              onClick={handlePost}
-              className="mt-2 w-full bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 transition-colors"
-            >
-              Post
-            </button>
           </div>
 
           <button
