@@ -260,7 +260,7 @@ const LensAuth = () => {
 
   useEffect(() => {
     if (state.loggedInUsername) {
-      window.location.href = "/bet";
+      window.location.href = "/protected";
     }
   }, [state]);
 
