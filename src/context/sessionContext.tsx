@@ -3,14 +3,16 @@ import { createContext, useContext, useState } from "react";
 interface SessionContextType {
   sessionClient: any | null;
   setSessionClient: (client: any | null) => void;
+  loggedInUsername: string;
+  setLoggedInUsername: (username: string) => void;
 }
 
 const SessionContext = createContext<SessionContextType | undefined>(undefined);
 
 export const SessionProvider = ({ children }: { children: React.ReactNode }) => {
   const [sessionClient, setSessionClient] = useState<any | null>(null);
+  const [loggedInUsername, setLoggedInUsername] = useState("");
 
-  // Add some debugging
   const setSessionWithLogging = (client: any | null) => {
     console.log("Setting session client:", client);
     setSessionClient(client);
@@ -20,7 +22,9 @@ export const SessionProvider = ({ children }: { children: React.ReactNode }) => 
     <SessionContext.Provider 
       value={{ 
         sessionClient, 
-        setSessionClient: setSessionWithLogging 
+        setSessionClient: setSessionWithLogging,
+        loggedInUsername,
+        setLoggedInUsername
       }}
     >
       {children}

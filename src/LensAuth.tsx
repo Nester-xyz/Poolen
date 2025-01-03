@@ -31,14 +31,13 @@ const LensAuth = () => {
   const { address } = useAccount();
   const { signMessageAsync } = useSignMessage();
   const [userName, setUserName] = useState("");
-  const { sessionClient, setSessionClient } = useSessionClient();
+  const { sessionClient, setSessionClient, loggedInUsername, setLoggedInUsername } = useSessionClient();
   const navigate = useNavigate();
 
   const [state, setState] = useState({
     error: "",
     isAuthenticated: false,
     availableUsers: [] as AccountManaged[],
-    loggedInUsername: "",
     isLoading: false,
     authenticatedValue: "",
   });
@@ -47,8 +46,7 @@ const LensAuth = () => {
   const setError = (error: string) => setState((prev) => ({ ...prev, error }));
   const setIsAuthenticated = (isAuthenticated: boolean) =>
     setState((prev) => ({ ...prev, isAuthenticated }));
-  const setLoggedInUsername = (loggedInUsername: string) =>
-    setState((prev) => ({ ...prev, loggedInUsername }));
+  
   const setAvailableUsers = (availableUsers: AccountManaged[]) =>
     setState((prev) => ({ ...prev, availableUsers }));
   const setIsLoading = (isLoading: boolean) =>
@@ -274,11 +272,11 @@ const LensAuth = () => {
   }, [address]);
 
   useEffect(() => {
-    if (sessionClient && state.loggedInUsername) {
+    if (sessionClient && loggedInUsername) {
       console.log("Navigation triggered with session:", sessionClient);
       navigate('/protected');
     }
-  }, [sessionClient, state.loggedInUsername, navigate]);
+  }, [sessionClient, loggedInUsername, navigate]);
 
   // Render Functions
   const renderContent = () => {
@@ -290,11 +288,11 @@ const LensAuth = () => {
       );
     }
 
-    if (state.isAuthenticated && state.loggedInUsername) {
+    if (state.isAuthenticated && loggedInUsername) {
       return (
         <div className="flex flex-col gap-4 items-center justify-center">
           <div>
-            <AccountSuccess username={state.loggedInUsername} />
+            <AccountSuccess username={loggedInUsername} />
           </div>
 
           <button

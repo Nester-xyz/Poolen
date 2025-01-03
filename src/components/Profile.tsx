@@ -1,52 +1,57 @@
+import { useSessionClient } from "../context/sessionContext";
+import { useEffect, useState } from "react";
+import { fetchAccount } from "@lens-protocol/client/actions";
+import { client } from "../client";
+
+interface LensProfile {
+  metadata?: {
+    picture?: {
+      optimized?: {
+        uri: string;
+      };
+    };
+    displayName?: string;
+  };
+}
+
+const DEFAULT_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z'/%3E%3C/svg%3E";
+
 const Profile = () => {
-  const avatar = "https://placehold.co/600x400";
-  const userName = "Alex";
-  const description = "I am a developer";
-  const followersCount = 100;
-  const followsCount = 100;
-  const postsCount = 100;
+  const [profile, setProfile] = useState<LensProfile | null>(null);
+  const { loggedInUsername } = useSessionClient();
+
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      if (!loggedInUsername || !client) return;
+
+      const result = await fetchAccount(client, {
+        username: {
+          localName: loggedInUsername
+        },
+      });
+
+      if (result.isErr()) {
+        console.error('Error fetching profile:', result.error);
+        return;
+      }
+
+      setProfile(result.value);
+    };
+
+    fetchProfileData();
+  }, [loggedInUsername]);
+
+  const avatar = profile?.metadata?.picture?.optimized?.uri || DEFAULT_AVATAR;
+  const userName = profile?.metadata?.displayName || loggedInUsername;
 
   return (
-    <div className="relative">
-      <div className="bg-blue-700 w-full h-32 relative">
-        <div className="flex items-center">
-          <div className="flex w-24 bg-slate-200 aspect-square rounded-full absolute left-4 -bottom-12 shadow-lg">
-            <img
-              src={avatar}
-              alt=""
-              className="rounded-full w-full h-full object-cover"
-            />
-          </div>
-        </div>
-      </div>
-      {/* Profile Name */}
-      <div className="flex flex-col gap-3 mt-[64px]">
-        <div className="flex flex-col">
-          <div className="text-2xl display-font ml-2">{userName}</div>
-          <div className="flex ml-2 gap-2">
-            <div className="text-sm text-slate-500">@{userName}</div>
-          </div>
-        </div>
-        <div>
-          {/* <div className="text-sm">Bio</div> */}
-          <div className="text-sm ml-2">{description}</div>
-        </div>
-      </div>
-      {/* followers, following and posts */}
-      <div className="flex gap-8 pt-2 ml-2">
-        <div className="flex gap-1 items-center">
-          <div className="text-[15px]">{followersCount?.toString()} </div>
-          <span className="text-slate-500 text-[13px]">followers</span>
-        </div>
-        <div className="flex gap-1 items-center">
-          <div className="text-[15px]">{followsCount?.toString()} </div>
-          <span className="text-slate-500 text-[13px]">following</span>
-        </div>
-        <div className="flex gap-1 items-center">
-          <div className="text-[15px]">{postsCount?.toString()} </div>
-          <span className="text-slate-500 text-[13px]">posts</span>
-        </div>
-      </div>
+    <div className="flex items-center gap-3 p-4">
+      <img
+        src={avatar}
+        alt=""
+        className="w-10 h-10 rounded-full object-cover"
+      />
+      <div className="text-lg">@{userName}</div>
     </div>
   );
 };
