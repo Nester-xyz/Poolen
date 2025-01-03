@@ -22,15 +22,17 @@ import SignUp from "./components/SignUp";
 import AccountSuccess from "./components/AccountSuccess";
 import LoadingSpinner from "./components/LoadingSpinner";
 import { Account } from "./types/account";
-import { APP_ADDRESS } from "./lib/constants";
-import { textOnly } from "@lens-protocol/metadata";
-import { storageClient } from "./storageClient";
+import { useSessionClient } from "./context/sessionContext";
+import { useNavigate } from 'react-router-dom';
+
 
 const LensAuth = () => {
   // Hooks
   const { address } = useAccount();
   const { signMessageAsync } = useSignMessage();
   const [userName, setUserName] = useState("");
+  const { sessionClient, setSessionClient } = useSessionClient();
+  const navigate = useNavigate();
 
   const [state, setState] = useState({
     error: "",
@@ -39,7 +41,6 @@ const LensAuth = () => {
     loggedInUsername: "",
     isLoading: false,
     authenticatedValue: "",
-    sessionClient: null as any,
   });
 
   // Utility Functions
@@ -54,8 +55,7 @@ const LensAuth = () => {
     setState((prev) => ({ ...prev, isLoading }));
   const setAuthenticatedValue = (authenticatedValue: string) =>
     setState((prev) => ({ ...prev, authenticatedValue }));
-  const setSessionClient = (sessionClient: any) =>
-    setState((prev) => ({ ...prev, sessionClient }));
+    
 
   const getClients = () => {
     if (!address) return null;
@@ -87,7 +87,7 @@ const LensAuth = () => {
         .login({
           accountOwner: {
             account: account.address,
-            app: APP_ADDRESS,
+            app: "0xe5439696f4057aF073c0FB2dc6e5e755392922e1",
             owner: await signer.getAddress(),
           },
           signMessage: (message) => signer.signMessage(message),
@@ -96,23 +96,35 @@ const LensAuth = () => {
           (result) => result,
           (error) => {
             throw error;
-          },
+          }
         );
+
+      // Set session client first
+      setSessionClient(credentials);
+      
       const authenticatedUser = await credentials.getAuthenticatedUser().match(
         (result) => result,
         (error) => {
           throw error;
-        },
+        }
       );
-      setSessionClient(credentials);
 
-      console.log(authenticatedUser);
+      // Then update other state
       setAuthenticatedValue(authenticatedUser.authentication_id);
-      console.log(authenticatedUser.authentication_id);
       setLoggedInUsername(account.username.value);
       setIsAuthenticated(true);
+
+      // Log the state after setting everything
+      console.log("Login successful:", {
+        sessionClient: credentials,
+        username: account.username.value,
+        isAuthenticated: true
+      });
+
     } catch (err) {
+      console.error("Login error:", err);
       setError(err instanceof Error ? err.message : "Failed to login");
+      setSessionClient(null);
     } finally {
       setIsLoading(false);
     }
@@ -146,8 +158,10 @@ const LensAuth = () => {
           (result) => result,
           (error) => {
             throw error;
-          },
+          }
         );
+
+      setSessionClient(sessionClient);
       setIsAuthenticated(true);
 
       console.log("Successfully authenticated with Lens!", sessionClient);
@@ -209,6 +223,7 @@ const LensAuth = () => {
       }
       //       console.log(createAccountResult);
     } catch (err) {
+      setSessionClient(null);
       const errorMessage =
         err instanceof Error ? err.message : "Failed to authenticate with Lens";
       setError(errorMessage);
@@ -218,8 +233,8 @@ const LensAuth = () => {
 
   const handleLogout = async () => {
     try {
-      if (state.sessionClient) {
-        const logoutRes = await revokeAuthentication(state.sessionClient, {
+      if (sessionClient) {
+        const logoutRes = await revokeAuthentication(sessionClient, {
           authenticationId: state.authenticatedValue,
         });
         console.log(logoutRes);
@@ -259,10 +274,11 @@ const LensAuth = () => {
   }, [address]);
 
   useEffect(() => {
-    if (state.loggedInUsername) {
-      window.location.href = "/protected";
+    if (sessionClient && state.loggedInUsername) {
+      console.log("Navigation triggered with session:", sessionClient);
+      navigate('/protected');
     }
-  }, [state]);
+  }, [sessionClient, state.loggedInUsername, navigate]);
 
   // Render Functions
   const renderContent = () => {
