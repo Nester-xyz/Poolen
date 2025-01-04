@@ -1,7 +1,7 @@
 import { useReadContract, useWriteContract, useWaitForTransactionReceipt, useAccount } from 'wagmi';
 import MemeMeleeABI from '../../../Poolen-contract/deployments-zk/lensTestnet/contracts/MemeMelee.sol/MemeMelee.json';
 
-const MEME_MELEE_ADDRESS = '0x1B6565f122315e598Ff874df32E2b8CEb1aD5b2C';
+const MEME_MELEE_ADDRESS = '0xF642B0E19044642EF0309DbBFA6EFf10c50BE4be';
 const memeMeleeConfig = {
 	address: MEME_MELEE_ADDRESS,
 	abi: MemeMeleeABI.abi,
@@ -104,16 +104,18 @@ export const useMemeMelee = () => {
 
 	const pickMeme = async (memeHash: string, wagerAmount: bigint) => {
 		if (!address) throw new Error('Wallet not connected');
-		
+
 		try {
-			const result = await writePickMeme({
-				...memeMeleeConfig,
+
+			const result = writePickMeme({
+				address: MEME_MELEE_ADDRESS,
+				abi: MemeMeleeABI.abi,
 				functionName: 'pickMeme',
 				args: [memeHash, wagerAmount],
 				value: wagerAmount,
 				chainId: 37111,
 				gas: 300000n,
-				account: address,
+				account: address
 			});
 
 			return result;
@@ -125,6 +127,7 @@ export const useMemeMelee = () => {
 			throw error;
 		}
 	};
+
 
 	const endRound = async (memeHash: string, closePrice: bigint) => {
 		writeEndRound({
