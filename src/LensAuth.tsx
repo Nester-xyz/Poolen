@@ -222,19 +222,19 @@ const LensAuth = () => {
       );
     }
 
-    if (state.isAuthenticated)
-      return (
-        <div className="w-8/12 mx-auto">
-          <div className="text-6xl text-balance font-black techno">
-            You are not signed in
-          </div>
-          <SignUp
-            setUserName={setUserName}
-            handleOnboarding={handleOnboarding}
-          />
-          {state?.availableUsers[0]?.account.username?.value}
+    // if (state.isAuthenticated)
+    return (
+      <div className="w-8/12 mx-auto">
+        <div className="text-6xl text-balance font-black techno">
+          You are not signed in
         </div>
-      );
+        <SignUp
+          setUserName={setUserName}
+          handleOnboarding={handleOnboarding}
+        />
+        {state?.availableUsers[0]?.account.username?.value}
+      </div>
+    );
 
     return null;
   };

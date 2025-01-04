@@ -1,3 +1,5 @@
+import AdminPanel from "./components/AdminPanel";
+import UserPanel from "./components/UserPanel";
 import Bets from "./pages/bets";
 import Connect from "./pages/Connect";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -11,6 +13,8 @@ function App() {
           <Routes>
             <Route path="/" element={<Connect />} />
             <Route path="/bet" element={<Bets />} />
+            <Route path='/admin' element={<AdminPanel />} />
+            <Route path='/user' element={<UserPanel />} />
           </Routes>
         </BrowserRouter>
       </div>
