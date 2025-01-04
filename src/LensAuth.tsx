@@ -96,23 +96,16 @@ const LensAuth = () => {
             throw error;
           }
         );
-
-      // Set session client first
       setSessionClient(credentials);
-      
       const authenticatedUser = await credentials.getAuthenticatedUser().match(
         (result) => result,
         (error) => {
           throw error;
         }
       );
-
-      // Then update other state
       setAuthenticatedValue(authenticatedUser.authentication_id);
       setLoggedInUsername(account.username.value);
       setIsAuthenticated(true);
-
-      // Log the state after setting everything
       console.log("Login successful:", {
         sessionClient: credentials,
         username: account.username.value,
@@ -133,17 +126,17 @@ const LensAuth = () => {
       setError("Please connect your wallet first");
       return;
     }
-
+  
     try {
       const clients = getClients();
-
+  
       if (!clients) {
         setError("Failed to initialize clients");
         return;
       }
-
+  
       const { storageClient, walletClient, metadata } = clients;
-
+  
       const sessionClient = await client
         .login({
           onboardingUser: {
@@ -156,36 +149,33 @@ const LensAuth = () => {
           (result) => result,
           (error) => {
             throw error;
-          }
+          },
         );
-
+  
       setSessionClient(sessionClient);
       setIsAuthenticated(true);
-
+  
       console.log("Successfully authenticated with Lens!", sessionClient);
-
+  
       const { uri } = await storageClient.uploadFile(
         new File([JSON.stringify(metadata)], "metadata.json", {
           type: "application/json",
         }),
       );
-
-      const createAccountResult = await createAccountWithUsername(
-        sessionClient,
-        {
-          metadataUri: uri,
-          username: {
-            localName: `${userName}${Date.now()}`, // Make username unique
-          },
+  
+      const newSessionClient = await createAccountWithUsername(sessionClient, {
+        metadataUri: uri,
+        username: {
+          localName: `${userName}${Date.now()}`, // Make username unique
         },
-      )
+      })
         .andThen(handleWith(walletClient))
         .andThen(sessionClient.waitForTransaction)
         .andThen((txHash) => fetchAccount(sessionClient, { txHash }))
-        .andThen((account) =>
+        .andThen((account) => 
           sessionClient.switchAccount({
             account: account?.address,
-          }),
+          })
         )
         .match(
           (result) => result,
@@ -193,10 +183,13 @@ const LensAuth = () => {
             throw error;
           },
         );
-      setSessionClient(sessionClient);
-
-      console.log(createAccountResult.getAuthenticatedUser());
-      const authenticatedUser = await createAccountResult
+  
+      // Now you must use the new session client going forward
+      setSessionClient(newSessionClient);
+  
+      console.log(newSessionClient.getAuthenticatedUser());
+  
+      const authenticatedUser = await newSessionClient
         .getAuthenticatedUser()
         .match(
           (result) => result,
@@ -204,22 +197,25 @@ const LensAuth = () => {
             throw error;
           },
         );
-      const newAccount = await fetchAccount(sessionClient, {
+  
+      const newAccount = await fetchAccount(newSessionClient, {
         address: (authenticatedUser as any).account,
       });
+  
       console.log(newAccount);
       setAuthenticatedValue(newAccount.username?.value);
+  
       const accountData = newAccount.match(
         (result) => result,
         (error) => {
           throw error;
         },
       );
+  
       if (accountData) {
         setLoggedInUsername(accountData.username?.value);
         setIsAuthenticated(true);
       }
-      //       console.log(createAccountResult);
     } catch (err) {
       setSessionClient(null);
       const errorMessage =
@@ -228,6 +224,7 @@ const LensAuth = () => {
       console.error(err);
     }
   };
+  
 
   const handleLogout = async () => {
     try {
