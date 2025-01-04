@@ -1,35 +1,53 @@
 import { TBetCard } from "../types/list";
-import * as motion from "motion/react-client";
-import CoinIcon from "./coinIcon";
+
+const memeCoins = [
+  { id: 'doge', name: 'Dogecoin', symbol: 'DOGE', icon: '🐕' },
+  { id: 'shib', name: 'Shiba Inu', symbol: 'SHIB', icon: '🐕' },
+  { id: 'pepe', name: 'Pepe', symbol: 'PEPE', icon: '🐸' },
+  { id: 'wojak', name: 'Wojak', symbol: 'WOJ', icon: '😢' },
+];
 
 interface CoinCollectionProps {
   card: TBetCard;
   isClicked: boolean;
-  onCoinClick?: (index: number) => void;
+  selectedCoin?: string | null;
+  onCoinSelect?: (coinId: string) => void;
 }
 
-const CoinCollection = ({
-  card,
-  isClicked,
-  onCoinClick,
-}: CoinCollectionProps) => {
+const CoinCollection = ({selectedCoin, onCoinSelect }: CoinCollectionProps) => {
+  const handleCoinClick = (e: React.MouseEvent, coinId: string) => {
+    e.stopPropagation();
+    onCoinSelect?.(coinId);
+  };
+
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: isClicked ? 0.8 : 1 }}
-      className={`${isClicked ? "flex flex-col" : "grid"} grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 p-2`}
-      role="group"
-      aria-label="Coin collection"
-    >
-      {card.options.map((coin, index) => (
-        <CoinIcon
-          key={index}
-          coin={coin}
-          isClicked={isClicked}
-          onClick={() => onCoinClick?.(index)}
-        />
+    <div className="flex gap-2">
+      {memeCoins.map((coin) => (
+        <button
+          key={coin.id}
+          onClick={(e) => handleCoinClick(e, coin.id)}
+          className={`relative group p-2 rounded-lg transition-all duration-200 
+          ${selectedCoin === coin.id 
+            ? 'bg-purple-100 ring-2 ring-purple-500' 
+            : 'hover:bg-gray-100'
+          }`}
+        >
+          <div className="flex flex-col items-center">
+            <span className="text-2xl mb-1">{coin.icon}</span>
+            <span className="text-xs font-medium text-gray-700">{coin.symbol}</span>
+          </div>
+          {selectedCoin === coin.id && (
+            <div className="absolute -top-1 -right-1">
+              <div className="bg-purple-500 rounded-full p-0.5">
+                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              </div>
+            </div>
+          )}
+        </button>
       ))}
-    </motion.div>
+    </div>
   );
 };
 

@@ -1,10 +1,15 @@
-const PrizePool = ({ isClicked }: { isClicked: boolean }) => {
+const PrizePool = ({ isClicked, poolAmount }: { 
+  isClicked: boolean;
+  poolAmount?: string;
+}) => {
   return (
-    <div
-      className={`${isClicked ? "text-purple-700 font-semibold" : "text-gray-800"} text-center py-2 border shadow-lg my-2`}
-    >
-      <div className="text-4xl font-bold">200</div>
-      <div className="text-lg">$NEST</div>
+    <div className="flex items-center gap-2">
+      <div>
+        <div className="text-sm font-medium">Current Pool</div>
+        <div className="text-lg font-semibold">
+          {poolAmount ? `${poolAmount} GRASS` : 'No bets yet'}
+        </div>
+      </div>
     </div>
   );
 };
