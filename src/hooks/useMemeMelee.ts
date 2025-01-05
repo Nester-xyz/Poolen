@@ -1,7 +1,7 @@
 import { useReadContract, useWriteContract, useWaitForTransactionReceipt, useAccount } from 'wagmi';
-import MemeMeleeABI from '../../../Poolen-contract/deployments-zk/lensTestnet/contracts/MemeMelee.sol/MemeMelee.json';
+import MemeMeleeABI from '../../server/deployments-zk/lensTestnet/contracts/MemeMelee.sol/MemeMelee.json';
 
-const MEME_MELEE_ADDRESS = '0xF642B0E19044642EF0309DbBFA6EFf10c50BE4be';
+const MEME_MELEE_ADDRESS = '0x351C82EDf8636bbd29680D00D4cBDFbF3f10763E';
 const memeMeleeConfig = {
 	address: MEME_MELEE_ADDRESS,
 	abi: MemeMeleeABI.abi,
@@ -111,7 +111,7 @@ export const useMemeMelee = () => {
 				address: MEME_MELEE_ADDRESS,
 				abi: MemeMeleeABI.abi,
 				functionName: 'pickMeme',
-				args: [memeHash, wagerAmount],
+				args: [memeHash],
 				value: wagerAmount,
 				chainId: 37111,
 				gas: 300000n,
