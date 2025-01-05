@@ -1,4 +1,5 @@
-import { useReadContract, useWriteContract, useWaitForTransactionReceipt, useAccount } from 'wagmi';
+
+import { useReadContract, useWriteContract, useWaitForTransactionReceipt, useAccount, usePublicClient } from 'wagmi';
 import MemeMeleeABI from '../../server/deployments-zk/lensTestnet/contracts/MemeMelee.sol/MemeMelee.json';
 
 const MEME_MELEE_ADDRESS = '0x351C82EDf8636bbd29680D00D4cBDFbF3f10763E';
@@ -6,8 +7,6 @@ const memeMeleeConfig = {
 	address: MEME_MELEE_ADDRESS,
 	abi: MemeMeleeABI.abi,
 } as const;
-
-
 
 interface MemeDetails {
 	name: string;
@@ -20,6 +19,7 @@ interface MemeDetails {
 
 export const useMemeMelee = () => {
 	const { address } = useAccount();
+	const publicClient = usePublicClient();
 
 	// Read Functions
 	const { data: owner } = useReadContract({
@@ -42,31 +42,47 @@ export const useMemeMelee = () => {
 		functionName: 'roundActive',
 	});
 
-	// Modified to be a proper hook usage
+	const { data: roundEndTime } = useReadContract({
+		...memeMeleeConfig,
+		functionName: 'getRoundEndTime',
+	});
 
-	const useMemeDetails = (memeHash: string) => {
-		const { data, isError, isPending } = useReadContract({
-			...memeMeleeConfig,
-			functionName: 'getMemeDetails',
-			args: [memeHash],
-		}) as { data: [string, bigint, number, bigint, bigint, boolean], isError: boolean, isPending: boolean };
+	const { data: memeHashes } = useReadContract({
+		...memeMeleeConfig,
+		functionName: 'getMemeHashes',
+	}) as { data: `0x${string}`[] | undefined };
 
-		const memeDetails: MemeDetails | null = data ? {
-			name: data[0],
-			totalWagered: data[1],
-			pickCount: data[2],
-			openPrice: data[3],
-			closePrice: data[4],
-			exists: data[5]
-		} : null;
+	// Get meme details directly using the public client
+	const getMemeDetails = async (memeHash: string): Promise<MemeDetails | null> => {
+		try {
+			const data = await publicClient.readContract({
+				...memeMeleeConfig,
+				functionName: 'getMemeDetails',
+				args: [memeHash],
+			});
 
-		return { memeDetails, isError, isPending };
+			if (!data) return null;
+
+			const [name, totalWagered, pickCount, openPrice, closePrice, exists] = data as [string, bigint, number, bigint, bigint, boolean];
+
+			return {
+				name,
+				totalWagered,
+				pickCount,
+				openPrice,
+				closePrice,
+				exists
+			};
+		} catch (error) {
+			console.error('Error reading meme details:', error);
+			return null;
+		}
 	};
 
 	const { data: userRewards, refetch: refetchUserRewards } = useReadContract({
 		...memeMeleeConfig,
 		functionName: 'userRewards',
-		args: [/* user address will be needed */],
+		args: [address],
 	});
 
 	// Write Functions
@@ -106,7 +122,6 @@ export const useMemeMelee = () => {
 		if (!address) throw new Error('Wallet not connected');
 
 		try {
-
 			const result = writePickMeme({
 				address: MEME_MELEE_ADDRESS,
 				abi: MemeMeleeABI.abi,
@@ -127,7 +142,6 @@ export const useMemeMelee = () => {
 			throw error;
 		}
 	};
-
 
 	const endRound = async (memeHash: string, closePrice: bigint) => {
 		writeEndRound({
@@ -168,7 +182,9 @@ export const useMemeMelee = () => {
 		grassToken,
 		currentRound,
 		roundActive,
-		useMemeDetails,
+		roundEndTime,
+		memeHashes,
+		getMemeDetails,
 		userRewards,
 		refetchUserRewards,
 
@@ -199,3 +215,4 @@ export const useMemeMelee = () => {
 		isClaimRewardConfirmed,
 	};
 };
+
