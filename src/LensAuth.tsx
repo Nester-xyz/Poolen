@@ -3,7 +3,6 @@ import { chains } from "@lens-network/sdk/viem";
 import { custom, useAccount, useSignMessage } from "wagmi";
 import { AccountManaged, evmAddress } from "@lens-protocol/client";
 import { handleWith } from "@lens-protocol/client/viem";
-import { revokeAuthentication } from "@lens-protocol/client/actions";
 import {
   createAccountWithUsername,
   fetchAccount,
@@ -16,10 +15,9 @@ import {
 } from "@lens-protocol/storage-node-client";
 import { createWalletClient } from "viem";
 import { ethers } from "ethers";
-import { CircleArrowRight, LogOut } from "lucide-react";
+import { CircleArrowRight } from "lucide-react";
 import { client } from "./client";
 import SignUp from "./components/SignUp";
-import AccountSuccess from "./components/AccountSuccess";
 import LoadingSpinner from "./components/LoadingSpinner";
 import { Account } from "./types/account";
 import { useSessionClient } from "./context/sessionContext";
@@ -31,7 +29,7 @@ const LensAuth = () => {
   const { address } = useAccount();
   const { signMessageAsync } = useSignMessage();
   const [userName, setUserName] = useState("");
-  const { sessionClient, setSessionClient, loggedInUsername, setLoggedInUsername } = useSessionClient();
+  const { sessionClient, setSessionClient, loggedInUsername, setLoggedInUsername, setAuthenticatedValue } = useSessionClient();
   const navigate = useNavigate();
 
   const [state, setState] = useState({
@@ -39,7 +37,7 @@ const LensAuth = () => {
     isAuthenticated: false,
     availableUsers: [] as AccountManaged[],
     isLoading: false,
-    authenticatedValue: "",
+    showSignUp: false
   });
 
   // Utility Functions
@@ -51,8 +49,6 @@ const LensAuth = () => {
     setState((prev) => ({ ...prev, availableUsers }));
   const setIsLoading = (isLoading: boolean) =>
     setState((prev) => ({ ...prev, isLoading }));
-  const setAuthenticatedValue = (authenticatedValue: string) =>
-    setState((prev) => ({ ...prev, authenticatedValue }));
     
 
   const getClients = () => {
@@ -224,31 +220,6 @@ const LensAuth = () => {
       console.error(err);
     }
   };
-  
-
-  const handleLogout = async () => {
-    try {
-      if (sessionClient) {
-        const logoutRes = await revokeAuthentication(sessionClient, {
-          authenticationId: state.authenticatedValue,
-        });
-        console.log(logoutRes);
-      }
-
-      setSessionClient(null);
-      setIsAuthenticated(false);
-      setLoggedInUsername("");
-      setAuthenticatedValue("");
-
-      // Fetch available accounts again after logout
-      const response = await fetchAccountsAvailable(client, {
-        managedBy: evmAddress(address!),
-      });
-      setAvailableUsers(response.value.items);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to logout");
-    }
-  };
 
   // Effects
   useEffect(() => {
@@ -285,55 +256,101 @@ const LensAuth = () => {
       );
     }
 
-    if (state.isAuthenticated && loggedInUsername) {
+    // Show account selection if we have available users and not in signup mode
+    if (state.availableUsers.length > 0 && !state.showSignUp) {
       return (
-        <div className="flex flex-col gap-4 items-center justify-center">
-          <div>
-            <AccountSuccess username={loggedInUsername} />
+        <div className="w-full max-w-2xl mx-auto">
+          {/* Header Section */}
+          <div className="text-2xl font-bold text-gray-800 mb-6 text-center">
+            Choose Your Account
           </div>
 
-          <button
-            onClick={handleLogout}
-            className="flex items-center justify-center gap-2 bg-red-500 text-white p-2 rounded-md"
-          >
-            <div className="text-lg">Logout</div> <LogOut className="w-4 h-4" />
-          </button>
-        </div>
-      );
-    }
-
-    if (state.availableUsers.length > 0) {
-      return (
-        <div className="h-96 w-80 overflow-scroll flex flex-col gap-2 border p-2">
-          <div className="text-2xl font-bold text-center">LOGIN AS</div>
-          {state.availableUsers.map((val, i) => (
-            <div
-              key={i}
-              className="p-2 bg-green-100 text-green-800 rounded flex justify-between"
-            >
-              {val.account.username?.value}
-              <div
-                className="cursor-pointer"
-                onClick={() => loginWithAccount(val.account)}
-              >
-                <CircleArrowRight />
-              </div>
+          {/* Account List */}
+          <div className="relative">
+            <div className="max-h-[400px] overflow-y-auto pr-2 space-y-2 
+            scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+              {state.availableUsers.map((val, i) => (
+                <div
+                  key={i}
+                  className="w-full"
+                >
+                  <button
+                    onClick={() => loginWithAccount(val.account)}
+                    className="w-full group border border-gray-300 hover:border-purple-600 
+                    bg-white hover:bg-gradient-to-r from-purple-100 to-purple-50
+                    rounded-tl-xl rounded-br-xl transition-all duration-200 ease-in-out 
+                    py-3 px-4 flex items-center justify-between"
+                  >
+                    <span className="text-base font-medium text-gray-800 truncate max-w-[80%]">
+                      {val.account.username?.value?.replace(/^lens\//, '') || ''}
+                    </span>
+                    
+                    <div className="text-purple-600 opacity-0 group-hover:opacity-100 
+                    transform group-hover:translate-x-1 transition-all duration-200">
+                      <CircleArrowRight className="w-5 h-5" />
+                    </div>
+                  </button>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
+
+          {/* Footer Section */}
+          <div className="mt-6 flex flex-col items-center gap-4">
+            <p className="text-sm text-gray-500">
+              Select your account to continue to the platform
+            </p>
+            
+            <div className="w-full border-t border-gray-200 pt-4">
+              <button
+                onClick={() => setState(prev => ({ 
+                  ...prev, 
+                  showSignUp: true
+                }))}
+                className="w-full group border border-gray-300 hover:border-purple-600 
+                bg-white hover:bg-gradient-to-r from-purple-100 to-purple-50
+                rounded-tl-xl rounded-br-xl transition-all duration-200 ease-in-out 
+                py-3 px-4 flex items-center justify-center gap-2"
+              >
+                <span className="text-gray-700 group-hover:text-purple-700 font-medium">
+                  Create Another Account
+                </span>
+                <svg 
+                  className="w-4 h-4 text-gray-500 group-hover:text-purple-600"
+                  fill="none" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M12 4v16m8-8H4" 
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
       );
     }
 
-    // if (!state.isAuthenticated)
+    // Show signup form
     return (
       <div className="w-full mx-auto">
-        <div className="text-3xl font-black techno">You are not signed in</div>
-        <SignUp setUserName={setUserName} handleOnboarding={handleOnboarding} />
-        {state?.availableUsers[0]?.account.username?.value}
+        <SignUp 
+          setUserName={setUserName} 
+          handleOnboarding={handleOnboarding}
+          hasExistingAccounts={state.availableUsers.length > 0}
+          onLoginInstead={() => {
+            setState(prev => ({
+              ...prev,
+              showSignUp: false
+            }));
+          }}
+        />
       </div>
     );
-
-    return null;
   };
 
   return <div className="p-4 space-y-4">{renderContent()}</div>;

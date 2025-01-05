@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+ import { useEffect, useState } from "react";
 import { getData } from "../api/getData";
 import { TBetCard } from "../types/list";
 import Card from "../components/Card";
@@ -15,8 +15,8 @@ import { useAccount } from "wagmi";
 const BetPostCollection = () => {
   const { address } = useAccount();
   const [postContent, setPostContent] = useState("");
-  const [data, setData] = useState<TBetCard[]>([]);
-  const [clickedId, setClickedId] = useState(-1);
+  const [card, setCard] = useState<TBetCard | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { sessionClient } = useSessionClient();
@@ -68,7 +68,7 @@ const BetPostCollection = () => {
   };
 
   useEffect(() => {
-    getData().then((data) => setData(data));
+    getData().then((data) => setCard(data[0]));
   }, []);
 
   return (
@@ -129,22 +129,19 @@ const BetPostCollection = () => {
           </div>
         </div>
 
-        {/* Bets List Section */}
-        <div className="space-y-4">
-          {data.map((card, i) => (
-            <div
-              key={i}
-              onClick={() => setClickedId((prev) => (prev === i ? -1 : i))}
-              className="transition-colors duration-200"
-            >
-              <Card 
-                card={card} 
-                isClicked={clickedId === i} 
-                onExpand={() => setClickedId(i)}
-              />
-            </div>
-          ))}
-        </div>
+        {/* Single Card Section */}
+        {card && (
+          <div 
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="transition-colors duration-200"
+          >
+            <Card 
+              card={card} 
+              isClicked={isExpanded} 
+              onExpand={() => setIsExpanded(!isExpanded)}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

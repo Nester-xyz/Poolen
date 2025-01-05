@@ -1,10 +1,10 @@
 import { TBetCard } from "../types/list";
 
 const memeCoins = [
-  { id: 'doge', name: 'Dogecoin', symbol: 'DOGE', icon: '🐕' },
-  { id: 'shib', name: 'Shiba Inu', symbol: 'SHIB', icon: '🐕' },
-  { id: 'pepe', name: 'Pepe', symbol: 'PEPE', icon: '🐸' },
-  { id: 'wojak', name: 'Wojak', symbol: 'WOJ', icon: '😢' },
+  { id: 'dog', name: 'Dogecoin', symbol: 'DOG', icon: '🐕' },
+  { id: 'cat', name: 'Shiba Inu', symbol: 'CAT', icon: '🐕' },
+  { id: 'frog', name: 'Pepe', symbol: 'FROG', icon: '🐸' },
+  { id: 'sad', name: 'Wojak', symbol: 'SAD', icon: '😢' },
 ];
 
 interface CoinCollectionProps {

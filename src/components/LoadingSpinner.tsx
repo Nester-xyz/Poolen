@@ -1,7 +1,17 @@
-const LoadingSpinner = () => {
+type LoadingSpinnerProps = {
+  size?: 'small' | 'medium' | 'large';
+};
+
+const LoadingSpinner = ({ size = 'medium' }: LoadingSpinnerProps) => {
+  const sizeClasses = {
+    small: 'w-4 h-4',
+    medium: 'w-8 h-8',
+    large: 'w-12 h-12'
+  };
+
   return (
-    <div className="flex items-center justify-center">
-      <div className="w-8 h-8 border-4 border-t-blue-500 border-blue-200 rounded-full animate-spin"></div>
+    <div className={`${sizeClasses[size]} animate-spin`}>
+      <div className="h-full w-full border-4 border-gray-200 rounded-full border-t-blue-500" />
     </div>
   );
 };

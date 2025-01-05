@@ -9,7 +9,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 function App() {
   return (
     <SessionProvider>
-      <div className="max-w-[30rem] mx-auto border border-black h-screen">
+      <div className="max-w-[30rem] mx-auto shadow-lg border border-gray-200 h-screen">
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Connect />} />

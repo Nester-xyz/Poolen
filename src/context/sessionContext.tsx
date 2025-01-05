@@ -5,6 +5,8 @@ interface SessionContextType {
   setSessionClient: (client: any | null) => void;
   loggedInUsername: string;
   setLoggedInUsername: (username: string) => void;
+  authenticatedValue: string;
+  setAuthenticatedValue: (value: string) => void;
 }
 
 const SessionContext = createContext<SessionContextType | undefined>(undefined);
@@ -12,6 +14,7 @@ const SessionContext = createContext<SessionContextType | undefined>(undefined);
 export const SessionProvider = ({ children }: { children: React.ReactNode }) => {
   const [sessionClient, setSessionClient] = useState<any | null>(null);
   const [loggedInUsername, setLoggedInUsername] = useState("");
+  const [authenticatedValue, setAuthenticatedValue] = useState("");
 
   const setSessionWithLogging = (client: any | null) => {
     console.log("Setting session client:", client);
@@ -24,7 +27,9 @@ export const SessionProvider = ({ children }: { children: React.ReactNode }) => 
         sessionClient, 
         setSessionClient: setSessionWithLogging,
         loggedInUsername,
-        setLoggedInUsername
+        setLoggedInUsername,
+        authenticatedValue,
+        setAuthenticatedValue
       }}
     >
       {children}

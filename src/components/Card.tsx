@@ -12,7 +12,6 @@ const Card = ({ card, isClicked, onExpand }: {
   const [isLoading, setIsLoading] = useState(false);
   const [betAmount, setBetAmount] = useState("");
   const [selectedCoin, setSelectedCoin] = useState<string | null>(null);
-  const [currentPool, setCurrentPool] = useState<string | undefined>();
 
   if (!card) return null;
 
@@ -35,16 +34,9 @@ const Card = ({ card, isClicked, onExpand }: {
     setSelectedCoin(coinId === selectedCoin ? null : coinId);
   };
 
-  // Example meme coins - replace with your actual data
-  const memeCoins = [
-    { id: 'doge', name: 'Dogecoin', symbol: 'DOGE', icon: '🐕' },
-    { id: 'shib', name: 'Shiba Inu', symbol: 'SHIB', icon: '🐕' },
-    { id: 'pepe', name: 'Pepe', symbol: 'PEPE', icon: '🐸' },
-    { id: 'wojak', name: 'Wojak', symbol: 'WOJ', icon: '😢' },
-  ];
-
-  const getSelectedCoinName = () => {
-    return memeCoins.find(c => c.id === selectedCoin)?.symbol || 'coin';
+  // Get selected coin symbol from CoinCollection component
+  const getSelectedCoinSymbol = () => {
+    return selectedCoin?.toUpperCase() || 'coin';
   };
 
   return (
@@ -63,7 +55,6 @@ const Card = ({ card, isClicked, onExpand }: {
           <div className="flex justify-between items-center gap-4">
             <PrizePool 
               isClicked={isClicked}
-              poolAmount={currentPool}
             />
             <div className="h-8 w-[1px] bg-gray-200"></div>
             <CoinCollection 
@@ -112,7 +103,7 @@ const Card = ({ card, isClicked, onExpand }: {
                       <span>Processing...</span>
                     </>
                   ) : (
-                    `Bet on ${getSelectedCoinName()}`
+                    `Bet on ${getSelectedCoinSymbol()}`
                   )}
                 </button>
               </div>
