@@ -145,6 +145,7 @@ contract MemeMelee is Ownable {
         bytes32 winningMeme,
         uint256 closePrice
     ) external onlyOwner {
+        // Initial checks
         if (!roundActive) {
             revert RoundNotActive();
         }
@@ -154,44 +155,48 @@ contract MemeMelee is Ownable {
         if (closePrice == 0) {
             revert InvalidClosePrice();
         }
-
+        
+        // Get winning meme and validate
         Meme storage winner = memes[winningMeme];
         if (!winner.exists || winner.pickCount == 0) {
             revert MemeDoesNotExist();
         }
 
-        // Set close price
+        // Store current prize pool and reset it (Checks-Effects pattern)
+        uint256 currentPrizePool = prizePool;
+        prizePool = 0;  // Reset before any transfers
+
+        // Set close price and emit event
         winner.closePrice = closePrice;
         emit MemePriceSet(winningMeme, winner.openPrice, closePrice);
 
-        uint256 fee = (prizePool * FEE_PERCENT) / 100;
-        uint256 rewardPool = prizePool - fee;
+        // Calculate rewards
+        uint256 fee = (currentPrizePool * FEE_PERCENT) / 100;
+        uint256 rewardPool = currentPrizePool - fee;
 
-        // Distribute rewards and send directly
+        // Distribute rewards
         for (uint256 i = 0; i < winner.userList.length; i++) {
             address user = winner.userList[i];
             uint256 userWager = winner.userWagers[user];
             if (userWager > 0) {
                 uint256 userReward = (userWager * rewardPool) / winner.totalWagered;
-
-                // Send reward directly
-                (bool success, ) = user.call{value: userReward}("");
+                (bool success, ) = payable(user).call{value: userReward}("");
                 if (!success) {
                     revert TransferFailed();
                 }
-
                 emit UserRewarded(user, userReward);
             }
         }
 
         // Transfer fee to owner
         if (fee > 0) {
-            (bool success, ) = owner().call{value: fee}("");
+            (bool success, ) = payable(owner()).call{value: fee}("");
             if (!success) {
                 revert TransferFailed();
             }
         }
 
+        // Update state and emit event
         roundActive = false;
         emit RoundEnded(winningMeme, rewardPool);
 
@@ -252,4 +257,5 @@ contract MemeMelee is Ownable {
     function getRoundEndTime() external view returns (uint256) {
         return roundEndTime;
     }
+
 }

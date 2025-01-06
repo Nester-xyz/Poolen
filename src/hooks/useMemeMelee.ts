@@ -2,7 +2,7 @@
 import { useReadContract, useWriteContract, useWaitForTransactionReceipt, useAccount, usePublicClient } from 'wagmi';
 import MemeMeleeABI from '../../server/deployments-zk/lensTestnet/contracts/MemeMelee.sol/MemeMelee.json';
 
-const MEME_MELEE_ADDRESS = '0x351C82EDf8636bbd29680D00D4cBDFbF3f10763E';
+const MEME_MELEE_ADDRESS = '0x21cc004953aa58F0FE9650bbB68Ca392895805B6';
 const memeMeleeConfig = {
 	address: MEME_MELEE_ADDRESS,
 	abi: MemeMeleeABI.abi,
@@ -55,7 +55,7 @@ export const useMemeMelee = () => {
 	// Get meme details directly using the public client
 	const getMemeDetails = async (memeHash: string): Promise<MemeDetails | null> => {
 		try {
-			const data = await publicClient.readContract({
+			const data = await publicClient!.readContract({
 				...memeMeleeConfig,
 				functionName: 'getMemeDetails',
 				args: [memeHash],
