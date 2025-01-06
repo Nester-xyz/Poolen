@@ -98,7 +98,7 @@ const Card = ({
       const wagerAmount = parseEther(betAmount);
 
       // Call the pickMeme function from the contract
-      await pickMeme(selectedMeme.hash, wagerAmount);
+      await pickMeme(selectedMeme.hash, wagerAmount, true);
 
       // Reset form after successful bet
       setBetAmount("");
