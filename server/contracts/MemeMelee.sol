@@ -19,8 +19,15 @@ contract MemeMelee is Ownable {
         address[] userList;
     }
 
+    struct Bet {
+        address user;
+        bytes32 memeHash;
+        uint256 amount;
+        uint256 timestamp;
+    }
+
     IERC20 public immutable grassToken; // Made immutable for gas optimization
-    uint256 public constant ROUND_DURATION = 1 days;
+    uint256 public constant ROUND_DURATION = 10 minutes;
     uint256 public constant MIN_WAGER = 1e15; // 0.001 GRASS
     uint256 public constant FEE_PERCENT = 5; // Made constant
     uint256 public roundEndTime;
@@ -33,6 +40,9 @@ contract MemeMelee is Ownable {
 
     uint256 public currentRound;
     bool public roundActive;
+
+    Bet[] private recentBets;
+    uint256 public constant MAX_RECENT_BETS = 50; // Store last 50 bets
 
     event MemePicked(
         address indexed user,
@@ -113,13 +123,12 @@ contract MemeMelee is Ownable {
         _;
     }
 
-    function pickMeme(
-    bytes32 memeHash
-    ) external payable onlyDuringRound {
+    function pickMeme(bytes32 memeHash) external payable onlyDuringRound {
         if (hasPicked[msg.sender]) {
             revert AlreadyPicked();
         }
-        if (msg.value < MIN_WAGER) {  // Check the actual sent ETH value
+        if (msg.value < MIN_WAGER) {
+            // Check the actual sent ETH value
             revert InsufficientWager();
         }
 
@@ -129,7 +138,7 @@ contract MemeMelee is Ownable {
         }
 
         // Update meme and user data
-        meme.totalWagered += msg.value;  // Use msg.value instead of amount parameter
+        meme.totalWagered += msg.value; // Use msg.value instead of amount parameter
         meme.pickCount++;
         if (meme.userWagers[msg.sender] == 0) {
             meme.userList.push(msg.sender);
@@ -137,6 +146,23 @@ contract MemeMelee is Ownable {
         meme.userWagers[msg.sender] += msg.value;
         prizePool += msg.value;
         hasPicked[msg.sender] = true;
+
+        // Store the bet in recent bets
+        if (recentBets.length >= MAX_RECENT_BETS) {
+            // Remove oldest bet if we reached the limit
+            for (uint256 i = 0; i < recentBets.length - 1; i++) {
+                recentBets[i] = recentBets[i + 1];
+            }
+            recentBets.pop();
+        }
+        recentBets.push(
+            Bet({
+                user: msg.sender,
+                memeHash: memeHash,
+                amount: msg.value,
+                timestamp: block.timestamp
+            })
+        );
 
         emit MemePicked(msg.sender, memeHash, msg.value);
     }
@@ -155,7 +181,7 @@ contract MemeMelee is Ownable {
         if (closePrice == 0) {
             revert InvalidClosePrice();
         }
-        
+
         // Get winning meme and validate
         Meme storage winner = memes[winningMeme];
         if (!winner.exists || winner.pickCount == 0) {
@@ -164,7 +190,7 @@ contract MemeMelee is Ownable {
 
         // Store current prize pool and reset it (Checks-Effects pattern)
         uint256 currentPrizePool = prizePool;
-        prizePool = 0;  // Reset before any transfers
+        prizePool = 0; // Reset before any transfers
 
         // Set close price and emit event
         winner.closePrice = closePrice;
@@ -179,7 +205,8 @@ contract MemeMelee is Ownable {
             address user = winner.userList[i];
             uint256 userWager = winner.userWagers[user];
             if (userWager > 0) {
-                uint256 userReward = (userWager * rewardPool) / winner.totalWagered;
+                uint256 userReward = (userWager * rewardPool) /
+                    winner.totalWagered;
                 (bool success, ) = payable(user).call{value: userReward}("");
                 if (!success) {
                     revert TransferFailed();
@@ -204,7 +231,6 @@ contract MemeMelee is Ownable {
         _startNewRound();
     }
 
-
     function addMeme(
         string calldata name,
         uint256 openPrice
@@ -223,7 +249,6 @@ contract MemeMelee is Ownable {
         emit MemeAdded(memeHash, name, openPrice);
         emit MemePriceSet(memeHash, openPrice, 0);
     }
-
 
     function getMemeDetails(
         bytes32 memeHash
@@ -258,4 +283,30 @@ contract MemeMelee is Ownable {
         return roundEndTime;
     }
 
+    function getRecentBets()
+        external
+        view
+        returns (
+            address[] memory users,
+            bytes32[] memory betMemeHashes,
+            uint256[] memory amounts,
+            uint256[] memory timestamps
+        )
+    {
+        uint256 length = recentBets.length;
+
+        users = new address[](length);
+        betMemeHashes = new bytes32[](length);
+        amounts = new uint256[](length);
+        timestamps = new uint256[](length);
+
+        for (uint256 i = 0; i < length; i++) {
+            users[i] = recentBets[i].user;
+            betMemeHashes[i] = recentBets[i].memeHash;
+            amounts[i] = recentBets[i].amount;
+            timestamps[i] = recentBets[i].timestamp;
+        }
+
+        return (users, betMemeHashes, amounts, timestamps);
+    }
 }

@@ -3,7 +3,7 @@ import { encodeFunctionData } from 'viem';
 import MemeMeleeABI from '../../server/deployments-zk/lensTestnet/contracts/MemeMelee.sol/MemeMelee.json';
 import { useSessionClient } from '../context/sessionContext';
 
-const MEME_MELEE_ADDRESS = '0x21cc004953aa58F0FE9650bbB68Ca392895805B6';
+const MEME_MELEE_ADDRESS = '0xD90FB9993988eB160b9cB4d86E4b62F971590aa0';
 
 // Add Lens Account ABI
 const accountABI = [
@@ -32,6 +32,13 @@ interface MemeDetails {
 	openPrice: bigint;
 	closePrice: bigint;
 	exists: boolean;
+}
+
+interface RecentBet {
+	users: string[];
+	betMemeHashes: `0x${string}`[];
+	amounts: bigint[];
+	timestamps: bigint[];
 }
 
 export const useMemeMelee = () => {
@@ -69,6 +76,13 @@ export const useMemeMelee = () => {
 		...memeMeleeConfig,
 		functionName: 'getMemeHashes',
 	}) as { data: `0x${string}`[] | undefined };
+
+	const { data: recentBets} = useReadContract({
+		...memeMeleeConfig,
+		functionName: 'getRecentBets'
+	})  as { 
+		data: RecentBet | undefined;
+	};
 
 	// Get meme details directly using the public client
 	const getMemeDetails = async (memeHash: string): Promise<MemeDetails | null> => {
@@ -286,6 +300,7 @@ export const useMemeMelee = () => {
 		getMemeDetails,
 		userRewards,
 		refetchUserRewards,
+		recentBets,
 
 		// Write Functions
 		addMeme,
