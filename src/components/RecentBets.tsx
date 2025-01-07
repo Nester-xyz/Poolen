@@ -19,6 +19,32 @@ const formatUsername = (username: string) => {
         : cleanUsername;
 };
 
+const getRelativeTime = (timestamp: Date) => {
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - timestamp.getTime()) / 1000);
+    
+    // Less than a minute
+    if (diffInSeconds < 60) {
+        return 'just now';
+    }
+    
+    // Less than an hour
+    if (diffInSeconds < 3600) {
+        const minutes = Math.floor(diffInSeconds / 60);
+        return `${minutes}m ago`;
+    }
+    
+    // Less than a day
+    if (diffInSeconds < 86400) {
+        const hours = Math.floor(diffInSeconds / 3600);
+        return `${hours}h ago`;
+    }
+    
+    // Less than a month
+    const days = Math.floor(diffInSeconds / 86400);
+    return `${days}d ago`;
+};
+
 const RecentBets = () => {
     const { recentBets, getMemeDetails } = useMemeMelee();
     const [formattedBets, setFormattedBets] = useState<FormattedBet[]>([]);
@@ -107,7 +133,7 @@ const RecentBets = () => {
                             {bet.amount} GRASS
                         </div>
                         <div className="text-xs text-gray-500">
-                            {bet.timestamp.toLocaleTimeString()}
+                            {getRelativeTime(bet.timestamp)}
                         </div>
                     </div>
                 </div>
