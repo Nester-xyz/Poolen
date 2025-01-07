@@ -14,45 +14,38 @@ const RecentBets = () => {
     const { recentBets, getMemeDetails } = useMemeMelee();
     const [formattedBets, setFormattedBets] = useState<FormattedBet[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-console.log(recentBets);
-    useEffect(() => {
-        const fetchAndFormatBets = async () => {
-            setIsLoading(true);
-            try {
-                
-                if (!recentBets?.users?.length) {
-                    setFormattedBets([]);
-                    return;
-                }
 
+    useEffect(() => {
+        const formatBets = async () => {
+            if (!recentBets?.[0]?.length) {
+                setFormattedBets([]);
+                setIsLoading(false);
+                return;
+            }
+
+            try {
+                const [users, memeHashes, amounts, timestamps] = recentBets;
                 const formatted = await Promise.all(
-                    recentBets.users.map(async (user, index) => {
-                        const memeDetails = await getMemeDetails(recentBets.betMemeHashes[index]);
+                    users.map(async (user, index) => {
+                        const memeDetails = await getMemeDetails(memeHashes[index]);
                         return {
                             user: `${user.slice(0, 6)}...${user.slice(-4)}`,
-                            memeHash: recentBets.betMemeHashes[index],
-                            amount: formatEther(recentBets.amounts[index] || 0n),
-                            timestamp: new Date(Number(recentBets.timestamps[index] || 0) * 1000),
+                            memeHash: memeHashes[index],
+                            amount: formatEther(amounts[index]),
+                            timestamp: new Date(Number(timestamps[index]) * 1000),
                             memeName: memeDetails?.name || 'Unknown Meme'
                         };
                     })
                 );
-
                 setFormattedBets(formatted.reverse());
             } catch (error) {
                 console.error('Error formatting bets:', error);
-                setFormattedBets([]);
             } finally {
                 setIsLoading(false);
             }
         };
 
-        fetchAndFormatBets();
-        
-        // Set up polling interval
-        const interval = setInterval(fetchAndFormatBets, 10000); // Poll every 10 seconds
-
-        return () => clearInterval(interval);
+        formatBets();
     }, [recentBets, getMemeDetails]);
 
     if (isLoading) {

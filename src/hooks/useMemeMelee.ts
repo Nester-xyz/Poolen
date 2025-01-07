@@ -2,7 +2,7 @@ import { useReadContract, useWriteContract, useWaitForTransactionReceipt, useAcc
 import { encodeFunctionData } from 'viem';
 import MemeMeleeABI from '../../server/deployments-zk/lensTestnet/contracts/MemeMelee.sol/MemeMelee.json';
 import { useSessionClient } from '../context/sessionContext';
-
+import { Address } from 'viem';
 const MEME_MELEE_ADDRESS = '0xD90FB9993988eB160b9cB4d86E4b62F971590aa0';
 
 // Add Lens Account ABI
@@ -34,12 +34,6 @@ interface MemeDetails {
 	exists: boolean;
 }
 
-interface RecentBet {
-	users: string[];
-	betMemeHashes: `0x${string}`[];
-	amounts: bigint[];
-	timestamps: bigint[];
-}
 
 export const useMemeMelee = () => {
 	const { address } = useAccount();
@@ -77,13 +71,18 @@ export const useMemeMelee = () => {
 		functionName: 'getMemeHashes',
 	}) as { data: `0x${string}`[] | undefined };
 
-	const { data: recentBets} = useReadContract({
+	const { data: recentBets } = useReadContract({
 		...memeMeleeConfig,
 		functionName: 'getRecentBets'
-	})  as { 
-		data: RecentBet | undefined;
-	};
-
+	  }) as {
+		data: [
+		  Address[], // users array
+		  `0x${string}`[], // betMemeHashes array
+		  bigint[], // amounts array
+		  bigint[] // timestamps array
+		] | undefined
+	  };
+	  
 	// Get meme details directly using the public client
 	const getMemeDetails = async (memeHash: string): Promise<MemeDetails | null> => {
 		try {
