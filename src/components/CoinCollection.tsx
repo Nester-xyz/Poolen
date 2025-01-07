@@ -2,6 +2,7 @@ import { TBetCard } from "../types/list";
 import { MemeCoin } from "../types/meme";
 import bonsaiImage from '../assets/Bonsai.jpeg';
 import pointlessImage from '../assets/Pointless.jpeg';
+import { useEffect, useState } from 'react';
 
 interface CoinCollectionProps {
   card: TBetCard;
@@ -9,6 +10,7 @@ interface CoinCollectionProps {
   onCoinSelect: (id: string) => void;
   isLoading: boolean;
   memeCoins: MemeCoin[];
+  fetchData: () => void;
 }
 
 const getImageForName = (name: string): string => {
@@ -21,14 +23,22 @@ const CoinCollection = ({
   selectedCoin,
   onCoinSelect,
   isLoading,
-  memeCoins
+  memeCoins,
+  fetchData
 }: CoinCollectionProps) => {
+  const [key, setKey] = useState(0);
+
+  useEffect(() => {
+    fetchData();
+    setKey(prev => prev + 1);
+  }, []);
+
   if (isLoading) {
     return <div className="animate-pulse h-12 bg-gray-200 rounded-lg w-48" />;
   }
 
   return (
-    <div className="flex gap-2">
+    <div key={key} className="flex gap-2">
       {memeCoins.map((coin) => (
         <button
           key={coin.id}

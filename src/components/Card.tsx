@@ -2,7 +2,7 @@ import { TBetCard } from "../types/list.ts";
 import { MemeCoin } from "../types/meme";
 import CoinCollection from "./CoinCollection";
 import PricePool from "./PrizePool";
-import { useState, useEffect, Dispatch, SetStateAction } from "react";
+import { useState, useEffect, Dispatch, SetStateAction, useCallback } from "react";
 import { useMemeMelee } from "../hooks/useMemeMelee";
 import { parseEther } from 'viem';
 import TimeRemaining from "./TimeRemaining.tsx";
@@ -18,6 +18,8 @@ interface CardProps {
 
 const Card = ({
   card,
+  isClicked,
+  onExpand
 }: CardProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCoin, setSelectedCoin] = useState<string | null>(null);
@@ -35,6 +37,38 @@ const Card = ({
     isPickMemeConfirmed,
     isPickMemeConfirming,
   } = useMemeMelee();
+
+  const fetchData = useCallback(async () => {
+    setIsFetchingMemes(true);
+    try {
+      if (!memeHashes) {
+        setIsFetchingMemes(false);
+        return;
+      }
+
+      const coinsData: MemeCoin[] = [];
+      for (const hash of memeHashes) {
+        const memeDetails = await getMemeDetails(hash);
+        if (memeDetails && memeDetails.exists) {
+          coinsData.push({
+            id: hash.slice(0, 10),
+            name: memeDetails.name,
+            symbol: memeDetails.name.slice(0, 4).toUpperCase(),
+            hash,
+            totalWagered: memeDetails.totalWagered,
+            pickCount: memeDetails.pickCount,
+            openPrice: memeDetails.openPrice,
+            closePrice: memeDetails.closePrice
+          });
+        }
+      }
+      setMemeCoins(coinsData);
+    } catch (error) {
+      console.error('Error loading meme details:', error);
+    } finally {
+      setIsFetchingMemes(false);
+    }
+  }, [memeHashes, getMemeDetails, isPickMemeConfirmed]);
 
   // Fetch meme details when memeHashes are available
   useEffect(() => {
@@ -74,7 +108,7 @@ const Card = ({
 
     console.log("reloading")
     loadMemeDetails();
-  }, [memeHashes]);
+  }, [memeHashes, isPickMemeConfirmed]);
 
   // Set default selected coin when memeCoins are loaded
   useEffect(() => {
@@ -141,6 +175,7 @@ const Card = ({
                 onCoinSelect={handleCoinSelect}
                 isLoading={isFetchingMemes}
                 memeCoins={memeCoins}
+                fetchData={fetchData}
               />
             </div>
 
