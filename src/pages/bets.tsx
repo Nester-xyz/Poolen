@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getData } from "../api/getData";
 import { TBetCard } from "../types/list";
 import Card from "../components/Card";
+import Modal from "../components/Modal";
 // import { useSessionClient } from "../context/sessionContext";
 // import { storageClient } from "../storageClient";
 // import { textOnly } from "@lens-protocol/metadata";
@@ -72,14 +73,19 @@ const BetPostCollection = () => {
     getData().then((data) => setCard(data[0]));
   }, []);
 
+  const [showModal, setShowModal] = useState(true);
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4">
         {/* Single Card Section */}
+        <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="Important notice" >
+          you need to have enough money in this wallet
+        </Modal>
         {card && (
           <div className="transition-colors duration-200">
-            <Card 
-              card={card} 
+            <Card
+              card={card}
               betAmount={betAmount}
               setBetAmount={setBetAmount}
               isClicked={isClicked}
