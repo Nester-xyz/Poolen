@@ -1,5 +1,5 @@
-import { useReadContract, useWriteContract, useWaitForTransactionReceipt, useAccount, usePublicClient , useBalance} from 'wagmi';
-import { encodeFunctionData, erc20Abi } from 'viem';
+import { useReadContract, useWriteContract, useWaitForTransactionReceipt, useAccount, usePublicClient, useBalance} from 'wagm i';
+import { encodeFunctionData } from 'viem';
 import MemeMeleeABI from '../../server/deployments-zk/lensTestnet/contracts/MemeMelee.sol/MemeMelee.json';
 import { useSessionClient } from '../context/sessionContext';
 import { Address } from 'viem';
@@ -40,7 +40,7 @@ export const useMemeMelee = () => {
 	const { activeLensAddress } = useSessionClient()
 	const { data: balance } = useBalance({
 		address: activeLensAddress, // Address of the smart contract
-	  });
+	}); 
 	const publicClient = usePublicClient();
 
 	// Read Functions
