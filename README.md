@@ -1,50 +1,35 @@
-# React + TypeScript + Vite
+## Project Name: Poolen
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Project Description:** <br/>
+**Poolen** is a simple prototype of betting application built on top of lens network to handle picking meme & distributing rewards once the time ends. We used the Lens v3 integration with Connectkit to connect as well as utilised the usage of v3 lens sdk to onboard mulitple users. Poolen handles or works as contract that enables the txns based on smart wallet account instance supported by lens i.e. we don't use the EOA wallet address to sign the txns on contract rather use lens account instace for every procedure. Having such use case we can easily bind the username that were being transacting in our contract even if the single EOA wallet handles multiple lens account addresses. 
 
-Currently, two official plugins are available:
+**Team Members: (Name and Lens Handle)**
+- [whoisanku](https://hey.xyz/u/whoisanku)
+- [aryog](https://hey.xyz/u/yoges)
+- alexcommoner
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+***Screenshot of homepage where anyone can make a bet:*** <br />
 
-## Expanding the ESLint configuration
+<img width="536" alt="Screenshot 2025-01-07 at 5 30 46 PM" src="https://github.com/user-attachments/assets/b4138b65-4cf4-432e-89c1-0ea60cb8e4f8" />
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
 
-- Configure the top-level `parserOptions` property like this:
+**Use cases**
+- Enables token prediction for memecoins
+- Streamlined user onboarding
+- Profile and account management
+- Token management & withdrawal function from Smart Wallet > EOA
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+**Development Roadmap**
+- User created based prediction market handling Oracle based decentralized results
+- On-chain community comments
+- More streamlined lens sdk integration (i.e. session management & more)
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+**Demo Video/Slide Deck Link:** <br />
+https://docs.google.com/presentation/d/1UWi1INSxjRHQOtSTEMVGzcdULHS5o_dO4giZvrGc7_Y/edit?usp=sharing
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+***Profile section screenshot:*** <br />
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+<img width="489" alt="Screenshot 2025-01-07 at 5 28 57 PM" src="https://github.com/user-attachments/assets/ca2a2736-0d65-4a83-928c-bf150aade0f5" />
+
+
+
