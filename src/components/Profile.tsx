@@ -117,7 +117,7 @@ const Profile = () => {
       </div>
 
       {/* Balance and Transaction Section */}
-      <div className="grid gap-6 p-3 md:grid-cols-2">
+      <div className=" gap-6 p-3 ">
         {/* Balance Card */}
         <div className="p-3 bg-white/10 rounded-lg backdrop-blur-sm shadow-sm border border-gray-300">
           <div className="flex items-center justify-between">
