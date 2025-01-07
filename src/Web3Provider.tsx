@@ -1,16 +1,20 @@
-import { WagmiProvider, createConfig } from "wagmi";
-import { Chain } from "wagmi/chains";
-import { mainnet } from "wagmi/chains";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ConnectKitProvider, getDefaultConfig } from "connectkit";
-import { createStorage } from "wagmi";
+import React from 'react';
+import { WagmiProvider, createConfig } from 'wagmi';
+import { Chain } from 'wagmi/chains';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ConnectKitProvider, getDefaultConfig } from 'connectkit';
+import { createStorage } from 'wagmi';
 
 const lensTestnet: Chain = {
-  id: 37111, // Chain ID for Lens Network Sepolia Testnet
+  id: 37111,
   name: "Lens Network Sepolia Testnet",
-  network: "lens-testnet",
   rpcUrls: {
-    default: "https://rpc.testnet.lens.dev", // Custom RPC URL
+    default: {
+      http: ["https://lens-sepolia.g.alchemy.com/v2/uQOK8iwpuKdoOVqSXL6htllJT1g64EOQ"],
+    },
+    public: {
+      http: ["https://lens-sepolia.g.alchemy.com/v2/uQOK8iwpuKdoOVqSXL6htllJT1g64EOQ"],
+    }
   },
   nativeCurrency: {
     name: "GRASS",
@@ -24,19 +28,15 @@ const lensTestnet: Chain = {
     },
   },
 };
+
 const config = createConfig(
   getDefaultConfig({
-    // Your dApps chains
     chains: [lensTestnet],
-    storage: createStorage({ storage: window.localStorage, }),
-    // Required API Keys
+    storage: createStorage({ storage: window.localStorage }),
     walletConnectProjectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID!,
-
-    // Required App Info
     appName: "Poolen",
   }),
 );
-
 
 const queryClient = new QueryClient();
 

@@ -1,187 +1,222 @@
-import { ConvertToCoin, CutString } from "../lib/helper";
-import { TBetCard } from "../types/list";
+import { TBetCard } from "../types/list.ts";
+import { MemeCoin } from "../types/meme";
 import CoinCollection from "./CoinCollection";
-import PrizePool from "./PrizePool";
-import Question from "./Questiont";
-import ValidUntil from "./ValidUntil";
+import PricePool from "./PrizePool";
+import { useState, useEffect } from "react";
+import { useMemeMelee } from "../hooks/useMemeMelee";
+import { parseEther } from 'viem';
+import TimeRemaining from "./TimeRemaining.tsx";
+import RecentBets from "./RecentBets";
 
-type CardProps = {
+interface CardProps {
   card: TBetCard;
+  betAmount: string;
+  setBetAmount: (amount: string) => void;
   isClicked: boolean;
-};
+  onExpand: () => void;
+}
 
-const Card = ({ card, isClicked }: CardProps) => {
+const Card = ({
+  card,
+  betAmount,
+  setBetAmount,
+}: CardProps) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedCoin, setSelectedCoin] = useState<string | null>(null);
+  const [memeCoins, setMemeCoins] = useState<MemeCoin[]>([]);
+  const [isFetchingMemes, setIsFetchingMemes] = useState(true);
+
+  // Get the meme-related functions from useMemeMelee
+  const {
+    memeHashes,
+    getMemeDetails,
+    pickMeme,
+    roundEndTime,
+    isPickMemePending,
+    isPickMemeConfirming,
+  } = useMemeMelee();
+
+  // Fetch meme details when memeHashes are available
+  useEffect(() => {
+    const loadMemeDetails = async () => {
+      if (!memeHashes) {
+        setIsFetchingMemes(false);
+        return;
+      }
+
+      try {
+        const coinsData: MemeCoin[] = [];
+
+        for (const hash of memeHashes) {
+          const memeDetails = await getMemeDetails(hash);
+
+          if (memeDetails && memeDetails.exists) {
+            coinsData.push({
+              id: hash.slice(0, 10),
+              name: memeDetails.name,
+              symbol: memeDetails.name.slice(0, 4).toUpperCase(),
+              hash,
+              totalWagered: memeDetails.totalWagered,
+              pickCount: memeDetails.pickCount,
+              openPrice: memeDetails.openPrice,
+              closePrice: memeDetails.closePrice
+            });
+          }
+        }
+
+        setMemeCoins(coinsData);
+      } catch (error) {
+        console.error('Error loading meme details:', error);
+      } finally {
+        setIsFetchingMemes(false);
+      }
+    };
+
+    loadMemeDetails();
+  }, [memeHashes, getMemeDetails]);
+
+  // Set default selected coin when memeCoins are loaded
+  useEffect(() => {
+    if (memeCoins.length > 0 && !selectedCoin) {
+      setSelectedCoin(memeCoins[0].id);
+    }
+  }, [memeCoins]);
+
+  // Update handleCoinSelect to remove expansion logic
+  const handleCoinSelect = (coinId: string) => {
+    setSelectedCoin(coinId === selectedCoin ? null : coinId);
+  };
+
   if (!card) return null;
+
+  const handlePlaceBet = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!selectedCoin || !betAmount || isLoading) return;
+
+    setIsLoading(true);
+    try {
+      // Find the full meme data for the selected coin
+      const selectedMeme = memeCoins.find(coin => coin.id === selectedCoin);
+      if (!selectedMeme) throw new Error('Selected meme not found');
+
+      // Convert bet amount to wei/bigint
+      const wagerAmount = parseEther(betAmount);
+
+      // Call the pickMeme function from the contract
+      await pickMeme(selectedMeme.hash, wagerAmount, true);
+
+      // Reset form after successful bet
+      setBetAmount("");
+      setSelectedCoin(null);
+    } catch (error) {
+      console.error('Error placing bet:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+
+  // Determine loading state from contract interactions
+  const isTransactionPending = isPickMemePending || isPickMemeConfirming;
+  const showLoadingState = isLoading || isTransactionPending;
+
   return (
-    <div
-      className={`w-full border border-black rounded-tl-3xl rounded-br-3xl px-3 py-3 transition-all duration-300 ease-in-out cursor-pointer hover:shadow-lg hover:border-gray-400 `}
-    >
-      <div className="grid grid-cols-8">
-        <div className="col-span-2">
-          <CoinCollection card={card} />
-          <PrizePool />
-        </div>
-        <div className="col-span-4">
-          <ValidUntil />
-          <Question />
-        </div>
-        {/* {card.options.map((coin, index) => {
-              return (
-                <div key={index}>
-                  <CoinIcon />
-                </div>
-              );
-            })} */}
-        {/* <div className="text-left flex-[4]">
-            {CutString(card.description, 100)}
-            <div className="grid grid-cols-4 mt-4">
-              {card.options.map((data, index) => {
-                return (
-                  <div
-                    key={index}
-                    className="flex flex-col items-center gap-1 transform transition-all duration-300 ease-in-out"
-                  >
-                    <img
-                      src={data.icon}
-                      alt="icon"
-                      classname="w-8 h-8 rounded-full object-cover transform transition hover:scale-110"
-                    />
-                    <div className="text-lg">{ConvertToCoin(data.name)}</div>
-                  </div>
-                );
-              })}
+    <div className="w-full max-w-3xl mx-auto border border-gray-300 rounded-tl-3xl rounded-br-3xl 
+      transition-colors duration-200 bg-white">
+      <div className="px-4 md:px-6 py-6">
+        <div className="text-gray-800 space-y-4">
+          <div className="mb-2 text-center md:text-md">
+            Which Meme coin will perform best in next 24 hours?
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center py-4 justify-between">
+              <div className="flex items-center">
+                <PricePool memeCoins={memeCoins} />
+              </div>
+              <CoinCollection
+                card={card}
+                selectedCoin={selectedCoin}
+                onCoinSelect={handleCoinSelect}
+                isLoading={isFetchingMemes}
+                memeCoins={memeCoins}
+              />
             </div>
-          </div> */}
-        {/* <div className="flex-1 transform transition-all duration-300 animate-fadeIn">
-            <div className="text-5xl">{card.prizePool}</div>
-            <div className="text-3xl">$NEST</div>
-          </div> */}
+
+            <div className="flex flex-col md:flex-row justify-between gap-4 text-sm text-gray-500">
+              <TimeRemaining endTime={roundEndTime} />
+              <div>
+                Participants: {memeCoins ? memeCoins.reduce((acc: number, meme) => acc + Number(meme.pickCount), 0) : 0}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="relative">
+                <input
+                  type="number"
+                  value={betAmount}
+                  onChange={(e) => {
+                    const value = parseFloat(e.target.value);
+                    if (isNaN(value) || value <= 0) {
+                      setBetAmount('');
+                      return;
+                    }
+                    setBetAmount(e.target.value);
+                  }}
+                  placeholder="Enter bet amount"
+                  disabled={showLoadingState}
+                  className={`w-full px-4 py-2 pl-4 pr-16 border border-gray-200 rounded-lg 
+                  focus:ring-2 focus:ring-purple-500 focus:border-transparent
+                  hover:border-purple-300 transition-all duration-200
+                  placeholder:translate-y-0 placeholder:text-gray-400
+                  [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none
+                  ${showLoadingState ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+                />
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">
+                  GRASS
+                </span>
+              </div>
+
+              <button
+                onClick={handlePlaceBet}
+                disabled={showLoadingState || !selectedCoin || !betAmount}
+                className={`w-full px-6 py-2 rounded-lg font-medium transition-colors duration-200 
+                ${showLoadingState || !selectedCoin || !betAmount
+                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                  : "bg-purple-600 text-white hover:bg-purple-700 active:bg-purple-800"
+                } flex items-center justify-center gap-2`}
+              >
+                {showLoadingState ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    <span>
+                      {isPickMemePending ? 'Confirm in wallet...' :
+                        isPickMemeConfirming ? 'Processing...' :
+                          'Loading...'}
+                    </span>
+                  </>
+                ) : (
+                  `Bet on ${selectedCoin ? memeCoins.find(coin => coin.id === selectedCoin)?.symbol || 'coin' : 'coin'}`
+                )}
+              </button>
+            </div>
+
+            <div className="mt-6 pt-6 border-t border-gray-100">
+              <h3 className="text-sm font-medium text-gray-900 mb-4">
+                Recent Bets
+              </h3>
+              <div className="max-h-[200px] overflow-y-auto">
+                <RecentBets />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
-  return (
-    <div
-      className={`
-        w-full border border-black rounded-tl-3xl rounded-br-3xl flex justify-between items-center px-5
-        transition-all duration-300 ease-in-out cursor-pointer
-        hover:shadow-lg hover:border-gray-400
-        ${isClicked ? "h-40" : "h-20"}
-      `}
-    >
-      {isClicked ? (
-        <div className="grid grid-cols-5 w-full animate-fadeIn">
-          <div className="col-span-4  text-left">
-            {CutString(card.description, 100)}
-            <div className="grid grid-cols-4 mt-4">
-              {card.options.map((data, index) => {
-                return (
-                  <div
-                    key={index}
-                    className="flex flex-col items-center gap-1 transform transition-all duration-300 ease-in-out"
-                    style={{
-                      animationDelay: `${index * 100}ms`,
-                      opacity: 0,
-                      animation: "slideUp 0.3s ease-out forwards",
-                    }}
-                  >
-                    <img
-                      src={data.icon}
-                      alt="icon"
-                      className="w-8 h-8 rounded-full object-cover transform transition hover:scale-110"
-                    />
-                    <div className="text-lg">{ConvertToCoin(data.name)}</div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-          <div className="col-span-1 transform transition-all duration-300 animate-fadeIn">
-            <div className="text-md">Prize pool</div>
-            <div className="text-5xl">{card.prizePool}</div>
-            <div className="text-3xl">$NST</div>
-          </div>
-        </div>
-      ) : (
-        <div className="flex justify-between items-center w-full animate-fadeIn">
-          <div className="flex-1">
-            <div className="line-clamp-1 transform transition-all duration-300">
-              {card.description}
-            </div>
-            <div className="flex gap-2 mt-1">
-              {card.options.slice(0, 3).map((data, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-1 transform transition-all duration-300"
-                  style={{
-                    animationDelay: `${index * 50}ms`,
-                    opacity: 0,
-                    animation: "slideIn 0.2s ease-out forwards",
-                  }}
-                >
-                  <img
-                    src={data.icon}
-                    alt="icon"
-                    className="w-6 h-6 rounded-full object-cover transform transition hover:scale-110"
-                  />
-                  <span className="text-sm">{ConvertToCoin(data.name)}</span>
-                </div>
-              ))}
-              {card.options.length > 3 && (
-                <span className="text-sm text-gray-500 animate-fadeIn">
-                  +{card.options.length - 3} more
-                </span>
-              )}
-            </div>
-          </div>
-          <div className="text-right transform transition-all duration-300 animate-fadeIn">
-            <div className="text-sm">Prize pool</div>
-            <div className="text-2xl">{card.prizePool} $NST</div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
 };
-
-// Add these keyframes to your global CSS file
-const styles = `
-  @keyframes slideUp {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes slideIn {
-    from {
-      opacity: 0;
-      transform: translateX(-10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-`;
-
-// Add the styles to the document
-if (typeof document !== "undefined") {
-  const styleSheet = document.createElement("style");
-  styleSheet.textContent = styles;
-  document.head.appendChild(styleSheet);
-}
 
 export default Card;

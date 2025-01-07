@@ -1,16 +1,31 @@
-import Connect from "./components/Connect";
-import BetPostCollection from "./components/betPostCollection";
-import Title from "./components/Title";
+import Layout from "./components/Layout";
+import Profile from "./components/Profile";
+import AdminPanel from "./components/AdminPanel";
+import Bets from "./pages/bets";
+import Connect from "./pages/Connect";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { SessionProvider } from './context/sessionContext';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
-    <div className="max-w-[30rem] mx-auto border border-black h-screen pt-10">
-      <div className="flex flex-col gap-10">
-        <Connect />
-        <Title />
-        <BetPostCollection />
+    <SessionProvider>
+      <div className="max-w-[30rem] mx-auto shadow-lg border border-gray-200 h-screen">
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Connect />} />
+            <Route path="/protected" element={<ProtectedRoute />}>
+              <Route element={<Layout />}>
+                <Route index element={<Bets />} />
+                <Route path="profile" element={<Profile />} />
+              </Route>
+            </Route>
+            <Route path="/bet" element={<Bets />} />
+            <Route path='/admin' element={<AdminPanel />} />
+          </Routes>
+        </BrowserRouter>
       </div>
-    </div>
+    </SessionProvider>
   );
 }
 
