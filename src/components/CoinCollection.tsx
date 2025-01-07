@@ -1,5 +1,7 @@
 import { TBetCard } from "../types/list";
 import { MemeCoin } from "../types/meme";
+import bonsaiImage from '../assets/Bonsai.jpeg';
+import pointlessImage from '../assets/Pointless.jpeg';
 
 interface CoinCollectionProps {
   card: TBetCard;
@@ -9,11 +11,10 @@ interface CoinCollectionProps {
   memeCoins: MemeCoin[];
 }
 
-const getIconForName = (name: string): string => {
+const getImageForName = (name: string): string => {
   const lowercaseName = name.toLowerCase();
-  if (lowercaseName.includes('dog') || lowercaseName.includes('shib')) return '🐕';
-  if (lowercaseName.includes('pepe') || lowercaseName.includes('frog')) return '🐸';
-  return '🎮';
+  if (lowercaseName.includes('bonsai')) return bonsaiImage;
+  return pointlessImage;
 };
 
 const CoinCollection = ({
@@ -32,16 +33,20 @@ const CoinCollection = ({
         <button
           key={coin.id}
           onClick={() => onCoinSelect(coin.id)}
-          className={`relative flex items-center gap-2 px-3 py-2 rounded-xl border-2 transition-all duration-200
+          className={`relative flex flex-col items-center gap-2 px-3 py-2 rounded-xl border-2 transition-all duration-200
             ${selectedCoin === coin.id 
               ? 'border-purple-500 bg-purple-50 text-purple-700' 
               : 'border-gray-200 hover:border-purple-200 hover:bg-purple-50/50'
             }
             w-[110px] md:w-[120px]`}
         >
-          <div className="flex items-center gap-2">
-            <span className="text-xl md:text-2xl">{getIconForName(coin.name)}</span>
-            <span className="font-medium text-sm md:text-base">
+          <div className="flex flex-col items-center gap-1">
+            <img 
+              src={getImageForName(coin.name)} 
+              alt={coin.name} 
+              className="w-8 h-8"
+            />
+            <span className="font-medium text-sm md:text-base text-center break-words">
               {coin.name}
             </span>
           </div>

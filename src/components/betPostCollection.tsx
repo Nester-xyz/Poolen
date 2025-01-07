@@ -17,6 +17,8 @@ const BetPostCollection = () => {
         card={data[0]} 
         isClicked={true} 
         onExpand={() => {}}
+        betAmount=""
+        setBetAmount={() => {}}
       />
       <div className="relative flex flex-col gap-2">
       </div>
