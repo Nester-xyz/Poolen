@@ -3,7 +3,7 @@ import { encodeFunctionData } from 'viem';
 import MemeMeleeABI from '../../server/deployments-zk/lensTestnet/contracts/MemeMelee.sol/MemeMelee.json';
 import { useSessionClient } from '../context/sessionContext';
 import { Address } from 'viem';
-const MEME_MELEE_ADDRESS = '0xD90FB9993988eB160b9cB4d86E4b62F971590aa0';
+const MEME_MELEE_ADDRESS = '0xf91c4801a94D9cc28A974EE53CaBf8fBE5915b57';
 
 // Add Lens Account ABI
 const accountABI = [
