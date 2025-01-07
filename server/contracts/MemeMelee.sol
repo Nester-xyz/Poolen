@@ -27,7 +27,7 @@ contract MemeMelee is Ownable {
     }
 
     IERC20 public immutable grassToken; // Made immutable for gas optimization
-    uint256 public constant ROUND_DURATION = 10 minutes;
+    uint256 public constant ROUND_DURATION = 1 days;
     uint256 public constant MIN_WAGER = 1e15; // 0.001 GRASS
     uint256 public constant FEE_PERCENT = 5; // Made constant
     uint256 public roundEndTime;
