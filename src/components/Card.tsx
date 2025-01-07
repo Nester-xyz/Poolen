@@ -2,7 +2,7 @@ import { TBetCard } from "../types/list.ts";
 import { MemeCoin } from "../types/meme";
 import CoinCollection from "./CoinCollection";
 import PricePool from "./PrizePool";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Dispatch, SetStateAction } from "react";
 import { useMemeMelee } from "../hooks/useMemeMelee";
 import { parseEther } from 'viem';
 import TimeRemaining from "./TimeRemaining.tsx";
@@ -10,6 +10,8 @@ import RecentBets from "./RecentBets";
 
 interface CardProps {
   card: TBetCard;
+  betAmount?: string;
+  setBetAmount?: Dispatch<SetStateAction<string>>;
   isClicked: boolean;
   onExpand: () => void;
 }
