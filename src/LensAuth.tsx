@@ -205,14 +205,13 @@ const LensAuth = () => {
       });
 
       console.log(newAccount);
-      setAuthenticatedValue(newAccount.username?.value);
-
       const accountData = newAccount.match(
         (result) => result,
         (error) => {
           throw error;
-        },
+        }
       );
+      setAuthenticatedValue(accountData?.username?.value ?? '');
 
       if (accountData) {
         setLoggedInUsername(accountData.username?.value);
@@ -235,14 +234,17 @@ const LensAuth = () => {
         const response = await fetchAccountsAvailable(client, {
           managedBy: evmAddress(address!),
         });
-        return response.value.items;
+        return response.match(
+          (data) => data!.items,
+          () => []
+        );
       } catch (err) {
         return err;
       } finally {
         setIsLoading(false);
       }
     };
-    fetchAllUser().then((res) => setAvailableUsers(res));
+    fetchAllUser().then((res) => setAvailableUsers(res as AccountManaged[]));
   }, [address]);
 
   useEffect(() => {

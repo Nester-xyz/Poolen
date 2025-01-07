@@ -10,19 +10,16 @@ import RecentBets from "./RecentBets";
 
 interface CardProps {
   card: TBetCard;
-  betAmount: string;
-  setBetAmount: (amount: string) => void;
   isClicked: boolean;
   onExpand: () => void;
 }
 
 const Card = ({
   card,
-  betAmount,
-  setBetAmount,
 }: CardProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCoin, setSelectedCoin] = useState<string | null>(null);
+  const [betAmount, setBetAmount] = useState("");
   const [memeCoins, setMemeCoins] = useState<MemeCoin[]>([]);
   const [isFetchingMemes, setIsFetchingMemes] = useState(true);
 
@@ -72,8 +69,9 @@ const Card = ({
       }
     };
 
+    console.log("reloading")
     loadMemeDetails();
-  }, [memeHashes, getMemeDetails]);
+  }, [memeHashes]);
 
   // Set default selected coin when memeCoins are loaded
   useEffect(() => {
@@ -144,7 +142,7 @@ const Card = ({
             </div>
 
             <div className="flex flex-col md:flex-row justify-between gap-4 text-sm text-gray-500">
-              <TimeRemaining endTime={roundEndTime} />
+              <TimeRemaining endTime={roundEndTime as string} />
               <div>
                 Participants: {memeCoins ? memeCoins.reduce((acc: number, meme) => acc + Number(meme.pickCount), 0) : 0}
               </div>
@@ -156,13 +154,21 @@ const Card = ({
                   type="number"
                   value={betAmount}
                   onChange={(e) => {
-                    const value = parseFloat(e.target.value);
-                    if (isNaN(value) || value <= 0) {
+                    const value = e.target.value;
+                    if (!/^\d*\.?\d*$/.test(value)) {
+                      return;
+                    }
+                    if (value === '') {
                       setBetAmount('');
                       return;
                     }
-                    setBetAmount(e.target.value);
+                    const numValue = parseFloat(value);
+                    if (isNaN(numValue)) {
+                      return;
+                    }
+                    setBetAmount(value);
                   }}
+                  step="0.1"
                   placeholder="Enter bet amount"
                   disabled={showLoadingState}
                   className={`w-full px-4 py-2 pl-4 pr-16 border border-gray-200 rounded-lg 
