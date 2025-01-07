@@ -32,6 +32,7 @@ const Card = ({
     pickMeme,
     roundEndTime,
     isPickMemePending,
+    isPickMemeConfirmed,
     isPickMemeConfirming,
   } = useMemeMelee();
 
@@ -80,7 +81,7 @@ const Card = ({
     if (memeCoins.length > 0 && !selectedCoin) {
       setSelectedCoin(memeCoins[0].id);
     }
-  }, [memeCoins]);
+  }, [memeCoins, isPickMemeConfirmed]);
 
   // Update handleCoinSelect to remove expansion logic
   const handleCoinSelect = (coinId: string) => {
