@@ -21,10 +21,10 @@ const PrizePool = ({ memeCoins }: {
     <div className="flex items-center gap-2">
       <div>
         <div className="text-sm font-medium">Current Pool</div>
-        <div className="text-lg font-semibold flex flex-row">
-          {formattedPool > 0 ? `${formattedPool.toFixed(2)}    ` : 'No bets yet'}
+        <div className="text-lg font-semibold flex flex-row p-1">
+          {formattedPool > 0 ? `${formattedPool.toFixed(2)}    ` : '0'}
           &ensp;
-          <div className="flex justify-center items-center w-6 h-6 border-[1px] border-green-600 rounded-full text-md">
+          <div className="flex justify-center items-center w-6 h-6 border-[1px] border-green-700 rounded-full text-md">
             🌱
           </div>
 
