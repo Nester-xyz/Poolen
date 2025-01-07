@@ -14,32 +14,32 @@ interface FormattedBet {
 
 const formatUsername = (username: string) => {
     const cleanUsername = username.replace(/^lens\//, '');
-    return cleanUsername.length > 7 
-        ? `${cleanUsername.slice(0, 7)}...` 
+    return cleanUsername.length > 15
+        ? `${cleanUsername.slice(0, 15)}...`
         : cleanUsername;
 };
 
 const getRelativeTime = (timestamp: Date) => {
     const now = new Date();
     const diffInSeconds = Math.floor((now.getTime() - timestamp.getTime()) / 1000);
-    
+
     // Less than a minute
     if (diffInSeconds < 60) {
         return 'just now';
     }
-    
+
     // Less than an hour
     if (diffInSeconds < 3600) {
         const minutes = Math.floor(diffInSeconds / 60);
         return `${minutes}m ago`;
     }
-    
+
     // Less than a day
     if (diffInSeconds < 86400) {
         const hours = Math.floor(diffInSeconds / 3600);
         return `${hours}h ago`;
     }
-    
+
     // Less than a month
     const days = Math.floor(diffInSeconds / 86400);
     return `${days}d ago`;
@@ -64,11 +64,11 @@ const RecentBets = () => {
                 const formatted = await Promise.all(
                     users.map(async (user, index) => {
                         const memeDetails = await getMemeDetails(memeHashes[index]);
-                        
+
                         const account = await fetchAccount(sessionClient, { address: user });
                         const username = account.match(
                             (result) => {
-                                const rawUsername = result?.username?.value || `${user.slice(0, 16)}...}`;
+                                const rawUsername = result?.username?.value || `${user.slice(0, 16)}...`;
                                 return formatUsername(rawUsername);
                             },
                             () => `${user.slice(0, 12)}...${user.slice(-4)}`
@@ -92,7 +92,7 @@ const RecentBets = () => {
         };
 
         formatBets();
-    }, [recentBets, sessionClient, ]);
+    }, [recentBets, sessionClient,]);
 
     if (isLoading) {
         return (
