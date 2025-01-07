@@ -68,10 +68,10 @@ const RecentBets = () => {
                         const account = await fetchAccount(sessionClient, { address: user });
                         const username = account.match(
                             (result) => {
-                                const rawUsername = result?.username?.value || `${user.slice(0, 6)}...${user.slice(-4)}`;
+                                const rawUsername = result?.username?.value || `${user.slice(0, 16)}...}`;
                                 return formatUsername(rawUsername);
                             },
-                            () => `${user.slice(0, 6)}...${user.slice(-4)}`
+                            () => `${user.slice(0, 12)}...${user.slice(-4)}`
                         );
 
                         return {
