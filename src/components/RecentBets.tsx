@@ -46,7 +46,7 @@ const RecentBets = () => {
         };
 
         formatBets();
-    }, [recentBets, getMemeDetails]);
+    }, [recentBets]);
 
     if (isLoading) {
         return (
@@ -84,7 +84,7 @@ const RecentBets = () => {
                     </div>
                     <div className="flex items-center space-x-4">
                         <div className="text-sm font-medium text-gray-900">
-                            {bet.amount} ETH
+                            {bet.amount} GRASS
                         </div>
                         <div className="text-xs text-gray-500">
                             {bet.timestamp.toLocaleTimeString()}

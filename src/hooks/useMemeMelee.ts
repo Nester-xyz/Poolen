@@ -74,15 +74,15 @@ export const useMemeMelee = () => {
 	const { data: recentBets } = useReadContract({
 		...memeMeleeConfig,
 		functionName: 'getRecentBets'
-	  }) as {
+	}) as {
 		data: [
-		  Address[], // users array
-		  `0x${string}`[], // betMemeHashes array
-		  bigint[], // amounts array
-		  bigint[] // timestamps array
+			Address[], // users array
+			`0x${string}`[], // betMemeHashes array
+			bigint[], // amounts array
+			bigint[] // timestamps array
 		] | undefined
-	  };
-	  
+	};
+
 	// Get meme details directly using the public client
 	const getMemeDetails = async (memeHash: string): Promise<MemeDetails | null> => {
 		try {
@@ -300,6 +300,7 @@ export const useMemeMelee = () => {
 		userRewards,
 		refetchUserRewards,
 		recentBets,
+		MEME_MELEE_ADDRESS,
 
 		// Write Functions
 		addMeme,
@@ -331,5 +332,6 @@ export const useMemeMelee = () => {
 		executeLensTransaction,
 		isLensTransactionPending,
 		lensTransactionHash,
+		memeMeleeConfig,
 	};
 };

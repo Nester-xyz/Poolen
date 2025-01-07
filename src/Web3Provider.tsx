@@ -10,10 +10,10 @@ const lensTestnet: Chain = {
   name: "Lens Network Sepolia Testnet",
   rpcUrls: {
     default: {
-      http: ["https://rpc.testnet.lens.dev"],
+      http: ["https://lens-sepolia.g.alchemy.com/v2/uQOK8iwpuKdoOVqSXL6htllJT1g64EOQ"],
     },
     public: {
-      http: ["https://rpc.testnet.lens.dev"],
+      http: ["https://lens-sepolia.g.alchemy.com/v2/uQOK8iwpuKdoOVqSXL6htllJT1g64EOQ"],
     }
   },
   nativeCurrency: {

@@ -166,12 +166,7 @@ const Card = ({
 
           {isClicked && (
             <>
-              <div className="mt-6 pt-6 border-t border-gray-100">
-                <h3 className="text-sm font-medium text-gray-900 mb-3">
-                  Recent Bets
-                </h3>
-                <RecentBets />
-              </div>
+
 
               <div className="mt-6 pt-6 border-t border-gray-100">
                 <div className="flex gap-4" onClick={handleInputClick}>
@@ -215,6 +210,13 @@ const Card = ({
               </div>
             </>
           )}
+          <div className="mt-6 pt-6 border-t border-gray-100">
+            <h3 className="text-sm font-medium text-gray-900 mb-3">
+              Recent Bets
+            </h3>
+            <RecentBets />
+          </div>
+
         </div>
       </div>
     </div>
