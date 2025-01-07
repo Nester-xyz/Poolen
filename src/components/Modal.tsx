@@ -20,11 +20,13 @@ const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
       />
 
       {/* Modal */}
-      <div className="relative z-50 w-full max-w-lg rounded-lg bg-yellow-50 p-6 shadow-xl">
+      <div className="relative z-50 w-full max-w-md rounded-lg bg-yellow-50 p-6 shadow-xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-yellow-900">{title}</h2>
           <button
+            type="button"
+            aria-label="Close modal"
             onClick={onClose}
             className="rounded-full p-1 hover:bg-yellow-100 transition-colors"
           >

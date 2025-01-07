@@ -79,8 +79,8 @@ const BetPostCollection = () => {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4">
         {/* Single Card Section */}
-        <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="Important notice" >
-          you need to have enough money in this wallet
+        <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="Note:" >
+         You need to send the testnet $GRASS token to your Lens Account Smart Wallet. You can get Smart Wallet access via our app's Profile page.
         </Modal>
         {card && (
           <div className="transition-colors duration-200">
