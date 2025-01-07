@@ -1,6 +1,6 @@
 export type TBetCard = {
-  id: number;
-  title: string;
+  id?: number;
+  title?: string;
   timeLeft?: string;
   participants?: number;
   category?: string;
@@ -12,4 +12,17 @@ export type TBetCard = {
     yes: number;
     no: number;
   };
+  prizePool: number;
+  description: string;
+  options: {
+    growth: number;
+    icon: string;
+    name: string;
+    pickedRate: number;
+  }[];
 }; 
+
+export type TBetOption = {
+  name: string;
+  icon: string;
+};

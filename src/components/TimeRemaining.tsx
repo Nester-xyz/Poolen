@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { usePublicClient } from 'wagmi';
 
-const TimeRemaining = ({ endTime }) => {
+const TimeRemaining = ({ endTime }:{endTime:string}) => {
   const [timeLeft, setTimeLeft] = useState('');
-  const [initialDiff, setInitialDiff] = useState(null);
+  const [initialDiff, setInitialDiff] = useState<number | null>(null);
   const publicClient = usePublicClient();
 
   const formatTime = (timeInSeconds: any) => {
