@@ -1,6 +1,8 @@
 import { useMemeMelee } from "../hooks/useMemeMelee";
 import { formatEther } from "viem";
 import { useEffect, useState } from "react";
+import { fetchAccount } from "@lens-protocol/client/actions";
+import { useSessionClient } from "../context/sessionContext";
 
 interface FormattedBet {
     user: string;
@@ -10,10 +12,18 @@ interface FormattedBet {
     memeName: string;
 }
 
+const formatUsername = (username: string) => {
+    const cleanUsername = username.replace(/^lens\//, '');
+    return cleanUsername.length > 7 
+        ? `${cleanUsername.slice(0, 7)}...` 
+        : cleanUsername;
+};
+
 const RecentBets = () => {
     const { recentBets, getMemeDetails } = useMemeMelee();
     const [formattedBets, setFormattedBets] = useState<FormattedBet[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const { sessionClient } = useSessionClient();
 
     useEffect(() => {
         const formatBets = async () => {
@@ -28,8 +38,18 @@ const RecentBets = () => {
                 const formatted = await Promise.all(
                     users.map(async (user, index) => {
                         const memeDetails = await getMemeDetails(memeHashes[index]);
+                        
+                        const account = await fetchAccount(sessionClient, { address: user });
+                        const username = account.match(
+                            (result) => {
+                                const rawUsername = result?.username?.value || `${user.slice(0, 6)}...${user.slice(-4)}`;
+                                return formatUsername(rawUsername);
+                            },
+                            () => `${user.slice(0, 6)}...${user.slice(-4)}`
+                        );
+
                         return {
-                            user: `${user.slice(0, 6)}...${user.slice(-4)}`,
+                            user: username,
                             memeHash: memeHashes[index],
                             amount: formatEther(amounts[index]),
                             timestamp: new Date(Number(timestamps[index]) * 1000),
@@ -46,7 +66,7 @@ const RecentBets = () => {
         };
 
         formatBets();
-    }, [recentBets]);
+    }, [recentBets, sessionClient, ]);
 
     if (isLoading) {
         return (
