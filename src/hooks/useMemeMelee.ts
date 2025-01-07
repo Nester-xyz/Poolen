@@ -1,5 +1,5 @@
-import { useReadContract, useWriteContract, useWaitForTransactionReceipt, useAccount, usePublicClient } from 'wagmi';
-import { encodeFunctionData } from 'viem';
+import { useReadContract, useWriteContract, useWaitForTransactionReceipt, useAccount, usePublicClient , useBalance} from 'wagmi';
+import { encodeFunctionData, erc20Abi } from 'viem';
 import MemeMeleeABI from '../../server/deployments-zk/lensTestnet/contracts/MemeMelee.sol/MemeMelee.json';
 import { useSessionClient } from '../context/sessionContext';
 import { Address } from 'viem';
@@ -38,6 +38,9 @@ interface MemeDetails {
 export const useMemeMelee = () => {
 	const { address } = useAccount();
 	const { activeLensAddress } = useSessionClient()
+	const { data: balance } = useBalance({
+		address: activeLensAddress, // Address of the smart contract
+	  });
 	const publicClient = usePublicClient();
 
 	// Read Functions
@@ -271,6 +274,26 @@ export const useMemeMelee = () => {
 		});
 	};
 
+	// Add new write contract hook for Lens claim
+	const { writeContract: writeLensClaim } = useWriteContract();
+
+	// Add new function for claiming through Lens
+	const claimBalanceLens = async () => {
+		if (!activeLensAddress) throw new Error('No Lens address');
+		if (!address) throw new Error('No wallet address');
+		
+		return writeLensClaim({
+			address: activeLensAddress,
+			abi: accountABI,
+			functionName: 'executeTransaction',
+			args: [
+				address as `0x${string}`,
+				balance?.value as bigint,
+				'0x'
+			],
+		});
+	};
+
 	const isLoading =
 		isAddMemePending ||
 		isPickMemePending ||
@@ -307,6 +330,7 @@ export const useMemeMelee = () => {
 		pickMeme,
 		endRound,
 		claimReward,
+		claimBalanceLens,
 
 		// Loading States
 		isLoading,
